@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>My Orders - ReCampus</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+</head>
+
+<body class="bg-light">
+
+
+<nav class="navbar navbar-expand-lg bg-white border-bottom">
+
+    <div class="container">
+
+        <a
+            class="navbar-brand fw-bold text-primary"
+            href="index.html"
+        >
+            <i class="bi bi-shop"></i>
+            ReCampus
+        </a>
+
+        <div class="ms-auto">
+
+            <a
+                href="index.html"
+                class="btn btn-outline-primary btn-sm"
+            >
+                <i class="bi bi-house"></i>
+                Home
+            </a>
+
+            <a
+                href="cart.html"
+                class="btn btn-outline-secondary btn-sm ms-2"
+            >
+                <i class="bi bi-cart3"></i>
+                Cart
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<main class="container py-5">
+
+    <div class="mb-4">
+
+        <h2 class="fw-bold">
+            My Orders
+        </h2>
+
+        <p class="text-muted mb-0">
+            View your purchases and payment status.
+        </p>
+
+    </div>
+
+
+    <div id="loading" class="text-center py-5">
+
+        <div
+            class="spinner-border text-primary"
+            role="status"
+        ></div>
+
+        <p class="mt-3 text-muted">
+            Loading your orders...
+        </p>
+
+    </div>
+
+
+    <div id="ordersContainer"></div>
+
+
+    <div
+        id="emptyState"
+        class="text-center py-5 d-none"
+    >
+
+        <i
+            class="bi bi-bag-x display-3 text-muted"
+        ></i>
+
+        <h4 class="mt-3">
+            No orders yet
+        </h4>
+
+        <p class="text-muted">
+            Your purchased products will appear here.
+        </p>
+
+        <a
+            href="index.html"
+            class="btn btn-primary"
+        >
+            Browse Products
+        </a>
+
+    </div>
+
+</main>
+
+
+<script>
+
+const token =
+    localStorage.getItem("recampus_token");
+
+
+if (!token) {
+
+    alert("Please login to view your orders.");
+
+    window.location.href = "login.html";
+
+}
+
+
+async function loadOrders() {
+
+    try {
+
+        const response = await fetch(
+            "http://localhost:5000/api/orders/my-orders",
+            {
+                headers: {
+                    "Authorization":
+                        `Bearer ${token}`
+                }
+            }
+        );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok || !data.success) {
+
+            throw new Error(
+                data.message ||
+                "Failed to load orders"
+            );
+
+        }
+
+
+        document.getElementById(
+            "loading"
+        ).classList.add("d-none");
+
+
+        if (!data.orders || data.orders.length === 0) {
+
+            document.getElementById(
+                "emptyState"
+            ).classList.remove("d-none");
+
+            return;
+
+        }
+
+
+        renderOrders(data.orders);
+
+
+    } catch (error) {
+
+        console.error(
+            "Load orders error:",
+            error
+        );
+
+
+        document.getElementById(
+            "loading"
+        ).classList.add("d-none");
+
+
+        document.getElementById(
+            "ordersContainer"
+        ).innerHTML = `
+
+            <div class="alert alert-danger">
+
+                <i class="bi bi-exclamation-triangle"></i>
+
+                ${error.message}
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+function renderOrders(orders) {
+
+    const container =
+        document.getElementById(
+            "ordersContainer"
+        );
+
+
+    container.innerHTML =
+        orders.map(order => {
+
+            const orderDate =
+                new Date(
+                    order.created_at
+                ).toLocaleString(
+                    "en-IN",
+                    {
+                        dateStyle: "medium",
+                        timeStyle: "short"
+                    }
+                );
+
+
+            const paymentBadge =
+                order.payment_status === "paid"
+                    ? `<span class="badge text-bg-success">
+                        Paid
+                       </span>`
+                    : `<span class="badge text-bg-warning">
+                        ${order.payment_status}
+                       </span>`;
+
+
+            const statusBadge =
+                getStatusBadge(
+                    order.order_status
+                );
+
+
+            const items =
+                order.order_items || [];
+
+
+            const itemHTML =
+                items.map(item => `
+
+                    <div
+                        class="d-flex justify-content-between
+                        align-items-center border-top py-3"
+                    >
+
+                        <div>
+
+                            <div class="fw-semibold">
+                                ${item.products?.title || "Product"}
+                            </div>
+
+                            <small class="text-muted">
+
+                                ${item.products?.category || ""}
+
+                                · Qty:
+                                ${item.quantity}
+
+                            </small>
+
+                        </div>
+
+                        <div class="fw-semibold">
+
+                            ₹${(
+                                Number(item.price) *
+                                Number(item.quantity)
+                            ).toLocaleString("en-IN")}
+
+                        </div>
+
+                    </div>
+
+                `).join("");
+
+
+            return `
+
+                <div class="card border-0 shadow-sm mb-4">
+
+                    <div class="card-body">
+
+                        <div
+                            class="d-flex
+                            justify-content-between
+                            align-items-start
+                            flex-wrap gap-3"
+                        >
+
+                            <div>
+
+                                <h5 class="fw-bold mb-1">
+
+                                    Order #${order.id}
+
+                                </h5>
+
+                                <small class="text-muted">
+
+                                    ${orderDate}
+
+                                </small>
+
+                            </div>
+
+
+                            <div class="text-end">
+
+                                <div class="mb-2">
+
+                                    ${paymentBadge}
+
+                                    ${statusBadge}
+
+                                </div>
+
+                                <div class="fw-bold fs-5">
+
+                                    ₹${Number(
+                                        order.total_amount
+                                    ).toLocaleString("en-IN")}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="mt-3">
+
+                            ${itemHTML}
+
+                        </div>
+
+
+                        <div class="mt-3 pt-3 border-top text-end">
+
+                            <a
+                                href="order-details.html?id=${order.id}"
+                                class="btn btn-sm btn-outline-primary"
+                            >
+                                <i class="bi bi-eye"></i>
+                                View Order Details
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+}
+
+
+function getStatusBadge(status) {
+
+    const statusMap = {
+
+        placed:
+            "text-bg-primary",
+
+        confirmed:
+            "text-bg-success",
+
+        processing:
+            "text-bg-info",
+
+        shipped:
+            "text-bg-warning",
+
+        delivered:
+            "text-bg-success",
+
+        cancelled:
+            "text-bg-danger"
+
+    };
+
+
+    const badgeClass =
+        statusMap[status] ||
+        "text-bg-secondary";
+
+
+    return `
+
+        <span class="badge ${badgeClass}">
+
+            ${status}
+
+        </span>
+
+    `;
+
+}
+
+
+loadOrders();
+
+</script>
+
+
+</body>
+
+</html>

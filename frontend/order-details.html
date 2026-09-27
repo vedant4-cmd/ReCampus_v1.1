@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Order Details - ReCampus</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .product-image {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .status-badge {
+            text-transform: capitalize;
+        }
+
+        .order-card {
+            border: none;
+            border-radius: 12px;
+        }
+
+        .info-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+    <div class="container">
+
+        <a class="navbar-brand fw-bold" href="index.html">
+            <i class="bi bi-shop"></i>
+            ReCampus
+        </a>
+
+        <div class="d-flex gap-2">
+            <a href="index.html" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-house"></i>
+                Home
+            </a>
+
+            <a href="wishlist.html" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-heart"></i>
+                Wishlist
+            </a>
+
+            <a href="cart.html" class="btn btn-primary btn-sm">
+                <i class="bi bi-cart"></i>
+                Cart
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+
+<!-- Main -->
+<div class="container py-5">
+
+    <!-- Loading -->
+    <div id="loadingState" class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-3 text-muted">Loading order details...</p>
+    </div>
+
+
+    <!-- Error -->
+    <div id="errorState" class="d-none text-center py-5">
+
+        <i class="bi bi-exclamation-circle text-danger"
+           style="font-size: 50px;"></i>
+
+        <h4 class="mt-3">Order not found</h4>
+
+        <p class="text-muted">
+            We couldn't find this order.
+        </p>
+
+        <a href="my-orders.html" class="btn btn-primary">
+            View My Orders
+        </a>
+
+    </div>
+
+
+    <!-- Order Content -->
+    <div id="orderContent" class="d-none">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div>
+                <h2 class="fw-bold mb-1">
+                    Order Details
+                </h2>
+
+                <p class="text-muted mb-0">
+                    Order #<span id="orderId"></span>
+                </p>
+            </div>
+
+            <a href="my-orders.html"
+               class="btn btn-outline-primary">
+
+                <i class="bi bi-arrow-left"></i>
+                My Orders
+
+            </a>
+
+        </div>
+
+
+        <!-- Order Information -->
+        <div class="card order-card shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <div class="row g-4">
+
+                    <div class="col-md-3">
+                        <div class="info-label">
+                            Order Date
+                        </div>
+
+                        <div class="info-value"
+                             id="orderDate">
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-3">
+                        <div class="info-label">
+                            Payment Status
+                        </div>
+
+                        <div>
+                            <span
+                                id="paymentStatus"
+                                class="badge bg-success status-badge">
+                            </span>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-3">
+                        <div class="info-label">
+                            Order Status
+                        </div>
+
+                        <div>
+                            <span
+                                id="orderStatus"
+                                class="badge bg-primary status-badge">
+                            </span>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-3">
+                        <div class="info-label">
+                            Total Amount
+                        </div>
+
+                        <div class="info-value text-primary fs-5">
+                            ₹<span id="totalAmount"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Products -->
+        <div class="card order-card shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-box-seam"></i>
+                    Products
+                </h5>
+
+                <div id="productsList"></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Payment Information -->
+        <div class="card order-card shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-credit-card"></i>
+                    Payment Information
+                </h5>
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <div class="info-label">
+                            Razorpay Order ID
+                        </div>
+
+                        <div class="small text-break"
+                             id="razorpayOrderId">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <div class="info-label">
+                            Razorpay Payment ID
+                        </div>
+
+                        <div class="small text-break"
+                             id="razorpayPaymentId">
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Back Button -->
+        <div class="text-center">
+
+            <a href="my-orders.html"
+               class="btn btn-primary">
+
+                <i class="bi bi-arrow-left"></i>
+                Back to My Orders
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const API_URL = "http://localhost:5000/api";
+
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get("id");
+
+
+// Get JWT
+const token = localStorage.getItem("recampus_token");
+
+// Elements
+const loadingState = document.getElementById("loadingState");
+const errorState = document.getElementById("errorState");
+const orderContent = document.getElementById("orderContent");
+
+
+// Load order
+async function loadOrder() {
+
+    if (!orderId || !token) {
+        showError();
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/orders/${orderId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            showError();
+            return;
+        }
+
+        displayOrder(data.order);
+
+    } catch (error) {
+
+        console.error("Load order error:", error);
+
+        showError();
+    }
+}
+
+
+// Display order
+function displayOrder(order) {
+
+    loadingState.classList.add("d-none");
+    errorState.classList.add("d-none");
+    orderContent.classList.remove("d-none");
+
+
+    document.getElementById("orderId").textContent =
+        order.id;
+
+
+    document.getElementById("orderDate").textContent =
+        formatDate(order.created_at);
+
+
+    document.getElementById("paymentStatus").textContent =
+        order.payment_status || "Pending";
+
+
+    document.getElementById("orderStatus").textContent =
+        order.order_status || "Pending";
+
+
+    document.getElementById("totalAmount").textContent =
+        Number(order.total_amount || 0).toFixed(2);
+
+
+    document.getElementById("razorpayOrderId").textContent =
+        order.razorpay_order_id || "Not available";
+
+
+    document.getElementById("razorpayPaymentId").textContent =
+        order.razorpay_payment_id || "Not available";
+
+
+    displayProducts(order.order_items || []);
+}
+
+
+// Display products
+function displayProducts(items) {
+
+    const container =
+        document.getElementById("productsList");
+
+
+    if (!items.length) {
+
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                No products found for this order.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML = items.map(item => {
+
+        const product = item.products || {};
+
+        const images = product.product_images || [];
+
+        const primaryImage =
+            images.find(image => image.is_primary) ||
+            images[0];
+
+
+        const imageUrl =
+            primaryImage?.image_url ||
+            "https://placehold.co/90x90?text=No+Image";
+
+
+        return `
+
+            <div class="d-flex align-items-center
+                        justify-content-between
+                        border-bottom py-3">
+
+                <div class="d-flex align-items-center">
+
+                    <img
+                        src="${escapeHtml(imageUrl)}"
+                        alt="${escapeHtml(product.title || "Product")}"
+                        class="product-image me-3"
+                    >
+
+                    <div>
+
+                        <h6 class="fw-bold mb-1">
+                            ${escapeHtml(
+                                product.title || "Product"
+                            )}
+                        </h6>
+
+                        <div class="small text-muted">
+
+                            Category:
+                            ${escapeHtml(
+                                product.category || "N/A"
+                            )}
+
+                        </div>
+
+                        <div class="small text-muted">
+
+                            Condition:
+                            ${escapeHtml(
+                                product.condition || "N/A"
+                            )}
+
+                        </div>
+
+                        <div class="small text-muted">
+
+                            Quantity:
+                            ${Number(item.quantity || 0)}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="text-end">
+
+                    <div class="fw-bold">
+                        ₹${(
+                            Number(item.price || 0) *
+                            Number(item.quantity || 0)
+                        ).toFixed(2)}
+                    </div>
+
+                    <div class="small text-muted">
+                        ₹${Number(item.price || 0).toFixed(2)}
+                        each
+                    </div>
+
+                    <a
+                        href="product.html?id=${product.id}"
+                        class="btn btn-sm btn-outline-primary mt-2"
+                    >
+                        View Product
+                    </a>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }).join("");
+}
+
+
+// Format date
+function formatDate(dateString) {
+
+    if (!dateString) {
+        return "N/A";
+    }
+
+    return new Date(dateString).toLocaleDateString(
+        "en-IN",
+        {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit"
+        }
+    );
+}
+
+
+// Escape HTML
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+// Show error
+function showError() {
+
+    loadingState.classList.add("d-none");
+    orderContent.classList.add("d-none");
+    errorState.classList.remove("d-none");
+}
+
+
+// Start
+loadOrder();
+
+</script>
+
+</body>
+</html>

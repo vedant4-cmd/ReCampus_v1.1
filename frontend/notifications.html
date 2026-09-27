@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Notifications - ReCampus</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
+
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .notification-card {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #eee;
+        }
+
+        .notification-card.unread {
+            border-left: 4px solid #0d6efd;
+            background: #f0f6ff;
+        }
+
+        .notification-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e9f2ff;
+            color: #0d6efd;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg bg-white border-bottom">
+
+    <div class="container">
+
+        <a class="navbar-brand fw-bold" href="index.html">
+            <i class="bi bi-shop"></i>
+            ReCampus
+        </a>
+
+        <div class="ms-auto">
+
+            <a
+                href="messages.html"
+                class="btn btn-outline-secondary btn-sm me-2"
+            >
+                <i class="bi bi-chat-dots"></i>
+                Messages
+            </a>
+
+            <a
+                href="index.html"
+                class="btn btn-outline-secondary btn-sm"
+            >
+                <i class="bi bi-house"></i>
+                Home
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <h3 class="mb-0">
+            <i class="bi bi-bell"></i>
+            Notifications
+        </h3>
+
+        <button
+            class="btn btn-outline-primary btn-sm"
+            onclick="markAllAsRead()"
+        >
+            <i class="bi bi-check2-all"></i>
+            Mark all as read
+        </button>
+
+    </div>
+
+
+    <div id="notificationsContainer">
+
+        <div class="text-center text-muted p-5">
+            Loading notifications...
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const API_URL = "http://localhost:5000/api";
+
+
+// ===============================
+// GET TOKEN
+// ===============================
+
+function getToken() {
+
+    const token =
+        localStorage.getItem("recampus_token");
+
+    if (!token) {
+
+        window.location.href = "login.html";
+
+        return null;
+    }
+
+    return token;
+}
+
+
+// ===============================
+// LOAD NOTIFICATIONS
+// ===============================
+
+async function loadNotifications() {
+
+    const token = getToken();
+
+    if (!token) return;
+
+    const container =
+        document.getElementById(
+            "notificationsContainer"
+        );
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/notifications`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!data.success) {
+
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    Failed to load notifications.
+                </div>
+            `;
+
+            return;
+        }
+
+        displayNotifications(
+            data.notifications || []
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load notifications.
+            </div>
+        `;
+    }
+}
+
+
+// ===============================
+// DISPLAY
+// ===============================
+
+function displayNotifications(
+    notifications
+) {
+
+    const container =
+        document.getElementById(
+            "notificationsContainer"
+        );
+
+
+    if (notifications.length === 0) {
+
+        container.innerHTML = `
+            <div class="text-center text-muted p-5">
+
+                <i class="bi bi-bell-slash fs-1"></i>
+
+                <h5 class="mt-3">
+                    No notifications
+                </h5>
+
+                <p>
+                    You're all caught up.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        notifications.map(
+            notification => {
+
+                return `
+                    <div
+                        class="notification-card ${
+                            notification.is_read
+                                ? ""
+                                : "unread"
+                        }"
+                    >
+
+                        <div class="d-flex gap-3">
+
+                            <div class="notification-icon">
+
+                                <i class="${getNotificationIcon(
+                                    notification.type
+                                )}"></i>
+
+                            </div>
+
+
+                            <div class="flex-grow-1">
+
+                                <div class="d-flex justify-content-between">
+
+                                    <h6 class="mb-1">
+                                        ${escapeHTML(
+                                            notification.title
+                                        )}
+                                    </h6>
+
+                                    ${
+                                        !notification.is_read
+                                            ? `
+                                                <span class="badge bg-primary">
+                                                    New
+                                                </span>
+                                              `
+                                            : ""
+                                    }
+
+                                </div>
+
+
+                                <p class="mb-1 text-muted">
+                                    ${escapeHTML(
+                                        notification.message
+                                    )}
+                                </p>
+
+
+                                <small class="text-muted">
+                                    ${formatDate(
+                                        notification.created_at
+                                    )}
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
+            }
+        ).join("");
+}
+
+
+// ===============================
+// MARK ALL READ
+// ===============================
+
+async function markAllAsRead() {
+
+    const token = getToken();
+
+    if (!token) return;
+
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/notifications/read-all`,
+            {
+                method: "PUT",
+
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
+                }
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (data.success) {
+
+            await loadNotifications();
+        }
+
+    } catch (error) {
+
+        console.error(error);
+    }
+}
+
+
+// ===============================
+// ICON
+// ===============================
+
+function getNotificationIcon(type) {
+
+    switch (type) {
+
+        case "message":
+            return "bi bi-chat-dots";
+
+        case "order":
+            return "bi bi-bag-check";
+
+        case "payment":
+            return "bi bi-credit-card";
+
+        case "review":
+            return "bi bi-star";
+
+        case "system":
+            return "bi bi-info-circle";
+
+        default:
+            return "bi bi-bell";
+    }
+}
+
+
+// ===============================
+// HELPERS
+// ===============================
+
+function escapeHTML(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value || "";
+
+    return div.innerHTML;
+}
+
+
+function formatDate(date) {
+
+    return new Date(date)
+        .toLocaleString(
+            [],
+            {
+                dateStyle: "medium",
+                timeStyle: "short"
+            }
+        );
+}
+
+
+// ===============================
+// INIT
+// ===============================
+
+loadNotifications();
+
+</script>
+
+</body>
+</html>

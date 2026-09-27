@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Messages - ReCampus</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
+
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .chat-container {
+            height: 75vh;
+            min-height: 500px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .conversation-list {
+            height: 100%;
+            overflow-y: auto;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .conversation-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .conversation-item:hover {
+            background: #f5f5f5;
+        }
+
+        .conversation-item.active {
+            background: #e9f2ff;
+        }
+
+        .chat-area {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            background: white;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message-row {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .message-row.mine {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .message-row.mine .message-bubble {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .chat-input {
+            padding: 12px;
+            border-top: 1px solid #dee2e6;
+            background: white;
+        }
+
+        .empty-chat {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 80vh;
+            }
+
+            .conversation-column {
+                display: none;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg bg-white border-bottom">
+    <div class="container">
+
+        <a class="navbar-brand fw-bold" href="index.html">
+            <i class="bi bi-shop"></i>
+            ReCampus
+        </a>
+
+        <div class="ms-auto">
+            <a href="index.html" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-house"></i>
+                Home
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+
+<div class="container mt-4">
+
+    <h3 class="mb-3">
+        <i class="bi bi-chat-dots"></i>
+        Messages
+    </h3>
+
+    <div class="chat-container row g-0">
+
+        <!-- CONVERSATIONS -->
+        <div class="col-md-4 conversation-column">
+
+            <div class="conversation-list">
+
+                <div class="p-3 border-bottom">
+                    <input
+                        type="text"
+                        id="conversationSearch"
+                        class="form-control"
+                        placeholder="Search conversations..."
+                    >
+                </div>
+
+                <div id="conversationList">
+                    <div class="text-center text-muted p-4">
+                        Loading conversations...
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CHAT -->
+        <div class="col-md-8">
+
+            <div class="chat-area">
+
+                <div id="chatHeader" class="chat-header">
+                    <strong>Select a conversation</strong>
+                </div>
+
+                <div id="messagesContainer" class="messages">
+
+                    <div class="empty-chat">
+                        <div>
+                            <i class="bi bi-chat-square-text fs-1"></i>
+
+                            <h5 class="mt-3">
+                                Your messages
+                            </h5>
+
+                            <p>
+                                Select a conversation to start chatting.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="chat-input">
+
+                    <div class="input-group">
+
+                        <input
+                            type="text"
+                            id="messageInput"
+                            class="form-control"
+                            placeholder="Type a message..."
+                            disabled
+                        >
+
+                        <button
+                            class="btn btn-primary"
+                            id="sendButton"
+                            onclick="sendMessage()"
+                            disabled
+                        >
+                            <i class="bi bi-send"></i>
+                            Send
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const API_URL = "http://localhost:5000/api";
+
+let currentUserId = null;
+let currentConversationUserId = null;
+let conversations = [];
+
+
+// ===============================
+// GET CURRENT USER
+// ===============================
+
+function getCurrentUserId() {
+
+    const token = localStorage.getItem("recampus_token");
+
+    if (!token) {
+        window.location.href = "login.html";
+        return null;
+    }
+
+    try {
+
+        const payload = JSON.parse(
+            atob(token.split(".")[1])
+        );
+
+        return payload.userId;
+
+    } catch (error) {
+
+        console.error("Invalid token");
+
+        window.location.href = "login.html";
+
+        return null;
+    }
+}
+
+
+// ===============================
+// LOAD CONVERSATIONS
+// ===============================
+
+async function loadConversations() {
+
+    const token =
+        localStorage.getItem("recampus_token");
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/messages`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!data.success) {
+
+            console.error(data);
+
+            return;
+        }
+
+        conversations = data.conversations || [];
+
+        displayConversations();
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load conversations:",
+            error
+        );
+
+    }
+}
+
+
+// ===============================
+// DISPLAY CONVERSATIONS
+// ===============================
+
+function displayConversations() {
+
+    const container =
+        document.getElementById("conversationList");
+
+    if (conversations.length === 0) {
+
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="bi bi-chat fs-2"></i>
+
+                <p class="mt-2">
+                    No conversations yet.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML = conversations.map(
+        conversation => {
+
+            const active =
+                conversation.user_id ===
+                currentConversationUserId
+                    ? "active"
+                    : "";
+
+            return `
+                <div
+                    class="conversation-item ${active}"
+                    onclick="openConversation('${conversation.user_id}')"
+                >
+
+                    <div class="d-flex justify-content-between">
+
+                        <strong>
+                            ${escapeHTML(conversation.user_name || "User")}
+                        </strong>
+
+                        ${
+                            !conversation.is_read
+                                ? `
+                                    <span class="badge bg-primary">
+                                        New
+                                    </span>
+                                  `
+                                : ""
+                        }
+
+                    </div>
+
+                    <div
+                        class="text-muted small text-truncate"
+                        style="max-width: 250px;"
+                    >
+                        ${escapeHTML(conversation.last_message)}
+                    </div>
+
+                    <div class="text-muted small mt-1">
+                        ${formatDate(conversation.created_at)}
+                    </div>
+
+                </div>
+            `;
+        }
+    ).join("");
+}
+
+
+// ===============================
+// OPEN CONVERSATION
+// ===============================
+
+async function openConversation(userId) {
+
+    currentConversationUserId = userId;
+
+    document.getElementById(
+        "messageInput"
+    ).disabled = false;
+
+    document.getElementById(
+        "sendButton"
+    ).disabled = false;
+
+
+    document.getElementById(
+        "chatHeader"
+    ).innerHTML = `
+        <strong>
+            <i class="bi bi-person-circle"></i>
+            Conversation
+        </strong>
+    `;
+
+
+    await loadConversation(userId);
+
+    await loadConversations();
+}
+
+
+// ===============================
+// LOAD CHAT
+// ===============================
+
+async function loadConversation(userId) {
+
+    const token =
+        localStorage.getItem("recampus_token");
+
+    const container =
+        document.getElementById(
+            "messagesContainer"
+        );
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/messages/${userId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!data.success) {
+
+            container.innerHTML = `
+                <div class="text-danger p-3">
+                    Failed to load conversation.
+                </div>
+            `;
+
+            return;
+        }
+
+        displayMessages(data.messages || []);
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.innerHTML = `
+            <div class="text-danger p-3">
+                Failed to load messages.
+            </div>
+        `;
+    }
+}
+
+
+// ===============================
+// DISPLAY MESSAGES
+// ===============================
+
+function displayMessages(messages) {
+
+    const container =
+        document.getElementById(
+            "messagesContainer"
+        );
+
+    if (messages.length === 0) {
+
+        container.innerHTML = `
+            <div class="empty-chat">
+
+                <div>
+                    <i class="bi bi-chat fs-1"></i>
+
+                    <p class="mt-2">
+                        No messages yet.
+                    </p>
+                </div>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML = messages.map(
+        message => {
+
+            const mine =
+                message.sender_id === currentUserId;
+
+            return `
+                <div class="message-row ${mine ? "mine" : ""}">
+
+                    <div class="message-bubble">
+
+                        <div>
+                            ${escapeHTML(message.message)}
+                        </div>
+
+                        <div class="message-time">
+                            ${formatDate(message.created_at)}
+                        </div>
+
+                    </div>
+
+                </div>
+            `;
+        }
+    ).join("");
+
+
+    container.scrollTop =
+        container.scrollHeight;
+}
+
+
+// ===============================
+// SEND MESSAGE
+// ===============================
+
+async function sendMessage() {
+
+    if (!currentConversationUserId) {
+        return;
+    }
+
+
+    const input =
+        document.getElementById(
+            "messageInput"
+        );
+
+    const message =
+        input.value.trim();
+
+
+    if (!message) {
+        return;
+    }
+
+
+    const token =
+        localStorage.getItem("recampus_token");
+
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/messages`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+
+                body: JSON.stringify({
+                    receiver_id:
+                        currentConversationUserId,
+
+                    message: message
+                })
+            }
+        );
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+
+            alert(
+                data.message ||
+                "Failed to send message"
+            );
+
+            return;
+        }
+
+
+        input.value = "";
+
+        await loadConversation(
+            currentConversationUserId
+        );
+
+        await loadConversations();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Failed to send message"
+        );
+    }
+}
+
+
+// ===============================
+// ENTER TO SEND
+// ===============================
+
+document
+    .getElementById("messageInput")
+    .addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                sendMessage();
+            }
+
+        }
+    );
+
+
+// ===============================
+// HELPERS
+// ===============================
+
+function escapeHTML(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent = value || "";
+
+    return div.innerHTML;
+}
+
+
+function formatDate(date) {
+
+    return new Date(date)
+        .toLocaleString(
+            [],
+            {
+                dateStyle: "short",
+                timeStyle: "short"
+            }
+        );
+}
+
+
+// ===============================
+// SEARCH
+// ===============================
+
+document
+    .getElementById("conversationSearch")
+    .addEventListener(
+        "input",
+        function() {
+
+            const search =
+                this.value
+                    .toLowerCase()
+                    .trim();
+
+            const items =
+                document.querySelectorAll(
+                    ".conversation-item"
+                );
+
+            items.forEach(item => {
+
+                item.style.display =
+                    item.innerText
+                        .toLowerCase()
+                        .includes(search)
+                            ? ""
+                            : "none";
+
+            });
+
+        }
+    );
+
+
+// ===============================
+// INITIALIZE
+// ===============================
+
+currentUserId =
+    getCurrentUserId();
+
+if (currentUserId) {
+    loadConversations();
+
+    const params = new URLSearchParams(
+        window.location.search
+    );
+
+    const sellerId = params.get("user");
+
+    if (sellerId && sellerId !== currentUserId) {
+        openConversation(sellerId);
+    }
+}
+
+</script>
+
+</body>
+</html>

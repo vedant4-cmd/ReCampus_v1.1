@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Product - ReCampus</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
+
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 450px;
+            object-fit: contain;
+            background: white;
+            border-radius: 12px;
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 8px;
+        }
+
+        .thumbnail:hover {
+            border-color: #0d6efd;
+        }
+
+        .product-card {
+            border: none;
+            border-radius: 12px;
+        }
+
+        .price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+    <div class="container">
+
+        <a class="navbar-brand text-primary" href="index.html">
+            <i class="bi bi-arrow-repeat"></i>
+            ReCampus
+        </a>
+
+        <div class="ms-auto">
+
+            <a href="index.html" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i>
+                Back to Marketplace
+            </a>
+
+        </div>
+
+    </div>
+</nav>
+
+
+<!-- PRODUCT -->
+<main class="container py-5">
+
+    <div id="loading" class="text-center py-5">
+
+        <div class="spinner-border text-primary"></div>
+
+        <p class="mt-3">
+            Loading product...
+        </p>
+
+    </div>
+
+
+    <div id="productContainer" class="d-none">
+
+        <div class="row g-5">
+
+            <!-- IMAGES -->
+            <div class="col-lg-6">
+
+                <div class="card product-card shadow-sm p-3">
+
+                    <img
+                        id="mainImage"
+                        class="main-image"
+                        src=""
+                        alt="Product"
+                    >
+
+                    <div
+                        id="thumbnailContainer"
+                        class="d-flex gap-2 flex-wrap mt-3">
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- DETAILS -->
+            <div class="col-lg-6">
+
+                <div class="card product-card shadow-sm p-4">
+
+                    <span
+                        id="category"
+                        class="badge bg-primary align-self-start mb-3">
+                    </span>
+
+                    <h1 id="title" class="fw-bold"></h1>
+
+                    <div id="price" class="price my-3"></div>
+
+                    <div class="mb-3">
+
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i>
+                            <span id="condition"></span>
+                        </span>
+
+                    </div>
+
+                    <hr>
+
+                    <h5>About this product</h5>
+
+                    <p
+                        id="description"
+                        class="text-muted">
+                    </p>
+
+                    <div class="mb-3">
+
+                        <strong>
+                            <i class="bi bi-building"></i>
+                            College:
+                        </strong>
+
+                        <span id="college"></span>
+
+                    </div>
+
+                    <div class="mb-4">
+
+                        <strong>
+                            <i class="bi bi-box-seam"></i>
+                            Stock:
+                        </strong>
+
+                        <span id="stock"></span>
+
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-body">
+
+                            <h5 class="fw-bold mb-3">
+                                <i class="bi bi-person-circle"></i>
+                                Seller
+                            </h5>
+
+                            <div id="sellerInfo">
+                                <span class="text-muted">
+                                    Loading seller information...
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <br>
+
+                    <!-- ACTIONS -->
+                    <div class="d-grid gap-2">
+
+                        <button
+                            id="buyButton"
+                            class="btn btn-primary btn-lg"
+                            onclick="buyNow()"
+                        >
+                            <i class="bi bi-lightning-fill"></i>
+                            Buy Now
+                        </button>
+
+                        <button
+                            class="btn btn-outline-primary"
+                            id="cartButton"
+                            onclick="addToCart()"
+                        >
+                            <i class="bi bi-cart3"></i>
+                            Add to Cart
+                        </button>
+
+                        <button
+                            class="btn btn-outline-danger"
+                            id="wishlistBtn"
+                            onclick="toggleWishlist()"
+                        >
+                            <i class="bi bi-heart"></i>
+                            Add to Wishlist
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Product Q&A -->
+
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h4 class="mb-3">
+                        <i class="bi bi-chat-left-text"></i>
+                        Questions & Answers
+                    </h4>
+
+                    <!-- Ask Question -->
+                    <div id="questionFormSection">
+                        <textarea
+                            id="questionInput"
+                            class="form-control mb-2"
+                            rows="3"
+                            placeholder="Ask a question about this product..."
+                        ></textarea>
+
+                        <button class="btn btn-primary" onclick="askQuestion()">
+                            <i class="bi bi-send"></i>
+                            Ask Question
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <!-- Questions List -->
+                    <div id="questionsList">
+                        <p class="text-muted">Loading questions...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REVIEWS SECTION -->
+
+            <div class="container mt-5 mb-5">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body">
+
+                        <h3 class="fw-bold mb-4">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            Reviews & Ratings
+                        </h3>
+
+                        <!-- RATING SUMMARY -->
+
+                        <div
+                            id="ratingSummary"
+                            class="mb-4"
+                        >
+                            Loading ratings...
+                        </div>
+
+
+                        <!-- REVIEW FORM -->
+
+                        <div
+                            id="reviewFormContainer"
+                            class="border-top pt-4"
+                        >
+
+                            <h5 class="fw-bold">
+                                Write a Review
+                            </h5>
+
+                            <p
+                                id="reviewLoginMessage"
+                                class="text-muted"
+                            >
+                                Login to leave a review.
+                            </p>
+
+
+                            <form
+                                id="reviewForm"
+                                class="d-none"
+                            >
+
+                                <div class="mb-3">
+
+                                    <label class="form-label fw-semibold">
+                                        Rating
+                                    </label>
+
+                                    <div
+                                        id="starSelector"
+                                        class="mb-2"
+                                    >
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-warning star-btn"
+                                            data-rating="1"
+                                        >
+                                            ★
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-warning star-btn"
+                                            data-rating="2"
+                                        >
+                                            ★
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-warning star-btn"
+                                            data-rating="3"
+                                        >
+                                            ★
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-warning star-btn"
+                                            data-rating="4"
+                                        >
+                                            ★
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-warning star-btn"
+                                            data-rating="5"
+                                        >
+                                            ★
+                                        </button>
+
+                                    </div>
+
+                                    <small
+                                        id="selectedRating"
+                                        class="text-muted"
+                                    >
+                                        Select a rating
+                                    </small>
+
+                                </div>
+
+
+                                <div class="mb-3">
+
+                                    <label
+                                        for="reviewComment"
+                                        class="form-label fw-semibold"
+                                    >
+                                        Your Review
+                                    </label>
+
+                                    <textarea
+                                        id="reviewComment"
+                                        class="form-control"
+                                        rows="4"
+                                        placeholder="Share your experience..."
+                                        required
+                                    ></textarea>
+
+                                </div>
+
+
+                                <button
+                                    type="submit"
+                                    id="submitReviewBtn"
+                                    class="btn btn-primary"
+                                >
+                                    <i class="bi bi-send"></i>
+                                    Submit Review
+                                </button>
+
+                            </form>
+
+                        </div>
+
+
+                        <!-- REVIEWS LIST -->
+
+                        <div
+                            id="reviewsList"
+                            class="mt-4"
+                        >
+                            Loading reviews...
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div id="errorContainer" class="d-none">
+
+        <div class="alert alert-danger text-center">
+
+            <i class="bi bi-exclamation-triangle"></i>
+
+            <h4 class="mt-2">
+                Product not found
+            </h4>
+
+            <a href="index.html" class="btn btn-primary mt-2">
+                Back to Marketplace
+            </a>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<script>
+
+const API_URL = "http://localhost:5000/api";
+
+let currentProduct = null;
+
+let selectedRating = 0;
+
+
+// GET PRODUCT ID FROM URL
+const params =
+    new URLSearchParams(window.location.search);
+
+const productId =
+    params.get("id");
+
+
+// LOAD PRODUCT
+async function loadProduct() {
+
+    if (!productId) {
+
+        showError();
+
+        return;
+
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/products/${productId}`
+            );
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+
+            showError();
+
+            return;
+
+        }
+
+        currentProduct = data.product;
+        console.log("PRODUCT DATA:", currentProduct);
+        saveRecentlyViewed(currentProduct);
+
+        displayProduct(
+            currentProduct
+        );
+
+        // Load seller information
+        if (currentProduct.seller_id) {
+
+            loadSellerProfile(
+                currentProduct.seller_id
+            );
+
+        } else {
+
+            document.getElementById(
+                "sellerInfo"
+            ).innerHTML = `
+                <span class="text-danger">
+                    Seller information unavailable.
+                </span>
+            `;
+        }
+
+        // Load reviews after product loads
+        loadReviews();
+        // Load product questions
+        loadQuestions(currentProduct.id);
+
+    } catch (error) {
+
+        console.error(error);
+
+        showError();
+
+    }
+
+}
+
+
+// DISPLAY PRODUCT
+function displayProduct(product) {
+
+    document.getElementById("loading")
+        .classList.add("d-none");
+
+    document.getElementById("productContainer")
+        .classList.remove("d-none");
+
+
+    document.getElementById("title").textContent =
+        product.title;
+
+    document.getElementById("price").textContent =
+        `₹${product.price}`;
+
+    document.getElementById("category").textContent =
+        product.category || "Product";
+
+    document.getElementById("condition").textContent =
+        product.condition || "Available";
+
+    document.getElementById("description").textContent =
+        product.description ||
+        "No description provided.";
+
+    document.getElementById("stock").textContent =
+        product.stock ?? 0;
+
+    document.getElementById("college").textContent =
+        product.colleges?.name ||
+        "Not specified";
+
+
+    // IMAGES
+    const images =
+        product.product_images ||
+        product.images ||
+        [];
+
+    const mainImage =
+        images.find(
+            img => img.is_primary
+        )?.image_url ||
+        images[0]?.image_url ||
+        "https://placehold.co/800x600?text=ReCampus";
+
+    document.getElementById("mainImage").src =
+        mainImage;
+
+    const thumbnailContainer =
+        document.getElementById("thumbnailContainer");
+
+    thumbnailContainer.innerHTML = "";
+
+    images.forEach(image => {
+
+        const thumbnail =
+            document.createElement("img");
+
+        thumbnail.src =
+            image.image_url;
+
+        thumbnail.className =
+            "thumbnail";
+
+        thumbnail.alt =
+            product.title;
+
+        thumbnail.onclick = () => {
+
+            document.getElementById("mainImage").src =
+                image.image_url;
+
+        };
+
+        thumbnailContainer.appendChild(
+            thumbnail
+        );
+    });
+
+
+    // OUT OF STOCK
+    if (
+        !product.stock ||
+        product.stock <= 0
+    ) {
+
+        document.getElementById(
+            "buyButton"
+        ).disabled = true;
+
+        document.getElementById(
+            "cartButton"
+        ).disabled = true;
+
+        document.getElementById(
+            "buyButton"
+        ).textContent =
+            "Out of Stock";
+    }
+
+}
+
+
+// BUY NOW
+function buyNow() {
+
+    if (!currentProduct) {
+        alert("Product information is not loaded yet.");
+        return;
+    }
+
+    if (!currentProduct.stock || currentProduct.stock <= 0) {
+        alert("This product is currently out of stock.");
+        return;
+    }
+
+    const token = localStorage.getItem("recampus_token");
+
+    if (!token) {
+        alert("Please login before buying.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    // Get product images from Supabase response
+    const images =
+        currentProduct.product_images ||
+        currentProduct.images ||
+        [];
+
+    console.log("PRODUCT IMAGES:", images);
+
+    // Find primary image first
+    const primaryImage =
+        images.find(img => img.is_primary === true) ||
+        images.find(img => img.is_primary === 1) ||
+        images[0];
+
+    const imageUrl =
+        primaryImage?.image_url ||
+        primaryImage?.url ||
+        "";
+
+    console.log("SELECTED PRODUCT IMAGE:", imageUrl);
+
+    let cart = [];
+
+    try {
+
+        cart = JSON.parse(
+            localStorage.getItem("recampus_cart") || "[]"
+        );
+
+        if (!Array.isArray(cart)) {
+            cart = [];
+        }
+
+    } catch (error) {
+
+        console.error("Cart parsing error:", error);
+
+        cart = [];
+
+    }
+
+    const existingItem = cart.find(
+        item =>
+            Number(item.id) ===
+            Number(currentProduct.id)
+    );
+
+    if (existingItem) {
+
+        if (
+            Number(existingItem.quantity) <
+            Number(currentProduct.stock)
+        ) {
+
+            existingItem.quantity += 1;
+
+        } else {
+
+            alert(
+                "You cannot add more than the available stock."
+            );
+
+            return;
+        }
+
+    } else {
+
+        cart.push({
+
+            id: currentProduct.id,
+
+            title: currentProduct.title,
+
+            price: Number(currentProduct.price),
+
+            category: currentProduct.category,
+
+            image: imageUrl,
+
+            quantity: 1
+
+        });
+
+    }
+
+    // Save cart
+    localStorage.setItem(
+        "recampus_cart",
+        JSON.stringify(cart)
+    );
+
+    console.log(
+        "CART SAVED:",
+        JSON.parse(
+            localStorage.getItem("recampus_cart")
+        )
+    );
+
+    // Go to cart
+    window.location.href = "cart.html";
+}
+
+// ADD TO CART
+function addToCart() {
+
+    if (!currentProduct) {
+        alert("Product information is not loaded yet.");
+        return;
+    }
+
+    if (!currentProduct.stock || currentProduct.stock <= 0) {
+        alert("This product is currently out of stock.");
+        return;
+    }
+
+    const images =
+        currentProduct.product_images ||
+        currentProduct.images ||
+        [];
+
+    const primaryImage =
+        images.find(img => img.is_primary === true) ||
+        images.find(img => img.is_primary === 1) ||
+        images[0];
+
+    const imageUrl =
+        primaryImage?.image_url ||
+        primaryImage?.url ||
+        "";
+
+    let cart = [];
+
+    try {
+
+        cart = JSON.parse(
+            localStorage.getItem("recampus_cart") || "[]"
+        );
+
+        if (!Array.isArray(cart)) {
+            cart = [];
+        }
+
+    } catch (error) {
+
+        cart = [];
+
+    }
+
+    const existingItem = cart.find(
+        item =>
+            Number(item.id) ===
+            Number(currentProduct.id)
+    );
+
+    if (existingItem) {
+
+        if (
+            Number(existingItem.quantity) <
+            Number(currentProduct.stock)
+        ) {
+
+            existingItem.quantity += 1;
+
+        } else {
+
+            alert("Maximum available stock reached.");
+            return;
+
+        }
+
+    } else {
+
+        cart.push({
+
+            id: currentProduct.id,
+
+            title: currentProduct.title,
+
+            price: Number(currentProduct.price),
+
+            category: currentProduct.category,
+
+            image: imageUrl,
+
+            quantity: 1
+
+        });
+
+    }
+
+    localStorage.setItem(
+        "recampus_cart",
+        JSON.stringify(cart)
+    );
+
+    alert("Product added to cart!");
+
+}
+
+
+// LOAD REVIEWS
+async function loadReviews() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/reviews/product/${productId}`
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                "Failed to load reviews"
+            );
+
+        }
+
+
+        displayRatingSummary(
+            data.average_rating,
+            data.total_reviews
+        );
+
+
+        displayReviews(
+            data.reviews
+        );
+
+
+        setupReviewForm();
+
+
+    } catch (error) {
+
+        console.error(
+            "Load reviews error:",
+            error
+        );
+
+
+        document.getElementById(
+            "ratingSummary"
+        ).innerHTML = `
+
+            <div class="text-muted">
+                No ratings yet.
+            </div>
+
+        `;
+
+
+        document.getElementById(
+            "reviewsList"
+        ).innerHTML = `
+
+            <div class="text-muted">
+                No reviews yet.
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+// DISPLAY RATING SUMMARY
+function displayRatingSummary(
+    average,
+    total
+) {
+
+    const rounded =
+        Math.round(Number(average));
+
+
+    const stars =
+        "★".repeat(rounded) +
+        "☆".repeat(5 - rounded);
+
+
+    document.getElementById(
+        "ratingSummary"
+    ).innerHTML = `
+
+        <div class="d-flex align-items-center gap-3">
+
+            <div
+                class="text-warning fs-3"
+            >
+                ${stars}
+            </div>
+
+            <div>
+
+                <div class="fw-bold fs-4">
+                    ${Number(average).toFixed(1)}
+                </div>
+
+                <div class="text-muted">
+                    ${total} review${total === 1 ? "" : "s"}
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+// DISPLAY REVIEWS
+function displayReviews(reviews) {
+
+    const container =
+        document.getElementById(
+            "reviewsList"
+        );
+
+
+    if (
+        !reviews ||
+        reviews.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="text-muted border-top pt-4">
+
+                No reviews yet.
+
+                Be the first verified buyer
+                to review this product.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML = `
+
+        <h5 class="fw-bold border-top pt-4 mb-3">
+            Customer Reviews
+        </h5>
+
+    `;
+
+
+    reviews.forEach(review => {
+
+        const stars =
+            "★".repeat(
+                Number(review.rating)
+            ) +
+            "☆".repeat(
+                5 - Number(review.rating)
+            );
+
+
+        const date =
+            new Date(
+                review.created_at
+            ).toLocaleDateString(
+                "en-IN",
+                {
+                    dateStyle: "medium"
+                }
+            );
+
+
+        const reviewDiv =
+            document.createElement(
+                "div"
+            );
+
+
+        reviewDiv.className =
+            "border-bottom py-3";
+
+
+        reviewDiv.innerHTML = `
+
+            <div class="d-flex justify-content-between">
+
+                <div>
+
+                    <div class="fw-semibold">
+
+                        ${escapeHtml(
+                            review.users?.name ||
+                            "Verified Buyer"
+                        )}
+
+                    </div>
+
+                    <div class="text-warning">
+                        ${stars}
+                    </div>
+
+                </div>
+
+                <small class="text-muted">
+                    ${date}
+                </small>
+
+            </div>
+
+            <p class="mb-0 mt-2">
+
+                ${escapeHtml(
+                    review.comment
+                )}
+
+            </p>
+
+        `;
+
+
+        container.appendChild(
+            reviewDiv
+        );
+
+    });
+
+}
+
+
+// SETUP REVIEW FORM
+function setupReviewForm() {
+
+    const token =
+        localStorage.getItem(
+            "recampus_token"
+        );
+
+
+    const form =
+        document.getElementById(
+            "reviewForm"
+        );
+
+    const loginMessage =
+        document.getElementById(
+            "reviewLoginMessage"
+        );
+
+
+    if (token) {
+
+        form.classList.remove(
+            "d-none"
+        );
+
+        loginMessage.classList.add(
+            "d-none"
+        );
+
+    }
+
+
+    // Star buttons
+    document.querySelectorAll(
+        ".star-btn"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            function() {
+
+                selectedRating =
+                    Number(
+                        this.dataset.rating
+                    );
+
+
+                document.querySelectorAll(
+                    ".star-btn"
+                ).forEach(star => {
+
+                    const rating =
+                        Number(
+                            star.dataset.rating
+                        );
+
+
+                    if (
+                        rating <=
+                        selectedRating
+                    ) {
+
+                        star.classList.remove(
+                            "btn-outline-warning"
+                        );
+
+                        star.classList.add(
+                            "btn-warning"
+                        );
+
+                    } else {
+
+                        star.classList.remove(
+                            "btn-warning"
+                        );
+
+                        star.classList.add(
+                            "btn-outline-warning"
+                        );
+
+                    }
+
+                });
+
+
+                document.getElementById(
+                    "selectedRating"
+                ).textContent =
+                    `${selectedRating} / 5 stars`;
+
+            }
+        );
+
+    });
+
+
+    form.addEventListener(
+        "submit",
+        submitReview
+    );
+
+}
+
+
+// SUBMIT REVIEW
+async function submitReview(event) {
+
+    event.preventDefault();
+
+
+    const token =
+        localStorage.getItem(
+            "recampus_token"
+        );
+
+
+    if (!token) {
+
+        alert(
+            "Please login to submit a review."
+        );
+
+        return;
+
+    }
+
+
+    if (selectedRating === 0) {
+
+        alert(
+            "Please select a rating."
+        );
+
+        return;
+
+    }
+
+
+    const comment =
+        document.getElementById(
+            "reviewComment"
+        ).value.trim();
+
+
+    if (!comment) {
+
+        alert(
+            "Please write a review."
+        );
+
+        return;
+
+    }
+
+
+    const button =
+        document.getElementById(
+            "submitReviewBtn"
+        );
+
+
+    button.disabled = true;
+
+    button.innerHTML = `
+        <span class="spinner-border spinner-border-sm"></span>
+        Submitting...
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/reviews`,
+                {
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            `Bearer ${token}`
+
+                    },
+
+                    body: JSON.stringify({
+
+                        product_id:
+                            Number(productId),
+
+                        rating:
+                            selectedRating,
+
+                        comment:
+                            comment
+
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.message ||
+                "Failed to submit review"
+            );
+
+        }
+
+
+        alert(
+            "Review submitted successfully!"
+        );
+
+
+        document.getElementById(
+            "reviewComment"
+        ).value = "";
+
+
+        selectedRating = 0;
+
+
+        document.querySelectorAll(
+            ".star-btn"
+        ).forEach(star => {
+
+            star.classList.remove(
+                "btn-warning"
+            );
+
+            star.classList.add(
+                "btn-outline-warning"
+            );
+
+        });
+
+
+        document.getElementById(
+            "selectedRating"
+        ).textContent =
+            "Select a rating";
+
+
+        // Reload reviews
+        await loadReviews();
+
+
+    } catch (error) {
+
+        console.error(
+            "Submit review error:",
+            error
+        );
+
+
+        alert(
+            error.message
+        );
+
+    }
+
+
+    button.disabled = false;
+
+    button.innerHTML = `
+        <i class="bi bi-send"></i>
+        Submit Review
+    `;
+
+}
+
+async function toggleWishlist() {
+
+    const token = localStorage.getItem("recampus_token");
+
+    if (!token) {
+        alert("Please login to use your wishlist.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    if (!currentProduct) {
+        alert("Product information is not loaded yet.");
+        return;
+    }
+
+    const button = document.getElementById("wishlistBtn");
+
+    try {
+
+        button.disabled = true;
+
+        const response = await fetch(
+            `${API_URL}/wishlist`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    product_id: currentProduct.id
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+
+            button.innerHTML = `
+                <i class="bi bi-heart-fill"></i>
+                Added to Wishlist
+            `;
+
+            alert("Product added to wishlist!");
+
+        } else if (response.status === 409) {
+
+            alert("This product is already in your wishlist.");
+
+        } else if (response.status === 401) {
+
+            localStorage.removeItem("recampus_token");
+            localStorage.removeItem("recampus_user");
+
+            alert("Your session has expired. Please login again.");
+
+            window.location.href = "login.html";
+
+        } else {
+
+            alert(data.message || "Could not add to wishlist.");
+        }
+
+    } catch (error) {
+
+        console.error("Wishlist error:", error);
+
+        alert("Unable to connect to server.");
+
+    } finally {
+
+        button.disabled = false;
+    }
+}
+
+// LOAD SELLER PROFILE
+
+async function loadSellerProfile(sellerId) {
+
+    const sellerInfo =
+        document.getElementById("sellerInfo");
+
+    if (!sellerInfo || !sellerId) {
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/sellers/${sellerId}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message ||
+                "Unable to load seller"
+            );
+        }
+
+        const seller = data.seller;
+
+        sellerInfo.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h5 class="mb-1">
+                        ${escapeHtml(seller.name)}
+                        ${
+                            seller.is_verified
+                                ? `<i
+                                    class="bi bi-patch-check-fill text-primary"
+                                    title="Verified seller"
+                                   ></i>`
+                                : ""
+                        }
+                    </h5>
+
+                    <p class="text-muted mb-1">
+                        ${
+                            seller.college?.name ||
+                            "College not specified"
+                        }
+                    </p>
+
+                    <small class="text-muted">
+                        ${escapeHtml(
+                            seller.role || "Seller"
+                        )}
+                    </small>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a
+                        href="seller.html?id=${seller.id}"
+                        class="btn btn-outline-primary"
+                    >
+                        <i class="bi bi-person"></i>
+                        View Profile
+                    </a>
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="messageSeller('${seller.id}')"
+                    >
+                        <i class="bi bi-chat-dots"></i>
+                        Message Seller
+                    </button>
+                </div>
+
+            </div>
+
+            <hr>
+
+            <div class="row text-center">
+
+                <div class="col-4">
+                    <strong>
+                        ${seller.statistics.products_listed}
+                    </strong>
+                    <br>
+                    <small class="text-muted">
+                        Listed
+                    </small>
+                </div>
+
+                <div class="col-4">
+                    <strong>
+                        ${seller.statistics.products_sold}
+                    </strong>
+                    <br>
+                    <small class="text-muted">
+                        Sold
+                    </small>
+                </div>
+
+                <div class="col-4">
+                    <strong>
+                        ${seller.statistics.active_products}
+                    </strong>
+                    <br>
+                    <small class="text-muted">
+                        Active
+                    </small>
+                </div>
+
+            </div>
+        `;
+
+    } catch (error) {
+
+        console.error(
+            "Seller profile error:",
+            error
+        );
+
+        sellerInfo.innerHTML = `
+            <span class="text-danger">
+                Unable to load seller information.
+            </span>
+        `;
+    }
+}
+
+function messageSeller(sellerId) {
+    if (!sellerId) {
+        return;
+    }
+
+    const token = localStorage.getItem("recampus_token");
+
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    window.location.href =
+        `messages.html?user=${encodeURIComponent(sellerId)}`;
+}
+
+async function loadQuestions(productId) {
+    const questionsList = document.getElementById("questionsList");
+
+    try {
+        const response = await fetch(
+            `${API_URL}/questions/product/${productId}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to load questions");
+        }
+
+        if (!data.questions || data.questions.length === 0) {
+            questionsList.innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-chat"></i>
+                    <p class="mb-0">No questions yet.</p>
+                    <small>Be the first to ask a question!</small>
+                </div>
+            `;
+            return;
+        }
+
+        const token = localStorage.getItem("recampus_token");
+
+        let loggedInUserId = null;
+
+        if (token) {
+            try {
+                const payload = JSON.parse(
+                    atob(token.split(".")[1])
+                );
+
+                loggedInUserId = payload.userId;
+            } catch (error) {
+                console.error("Invalid token");
+            }
+        }
+
+        const isSeller =
+            loggedInUserId === currentProduct.seller_id;
+
+        questionsList.innerHTML = data.questions.map(question => {
+
+            const questionDate =
+                new Date(question.created_at)
+                    .toLocaleDateString();
+
+            let answerHTML = "";
+
+            if (question.answer) {
+
+                const answerDate = question.answered_at
+                    ? new Date(question.answered_at)
+                        .toLocaleDateString()
+                    : "";
+
+                answerHTML = `
+                    <div class="bg-light rounded p-3 mt-3 ms-4">
+
+                        <strong>
+                            <i class="bi bi-shop"></i>
+                            Seller Answer
+                        </strong>
+
+                        <p class="mb-1 mt-2">
+                            ${escapeHTML(question.answer)}
+                        </p>
+
+                        <small class="text-muted">
+                            ${answerDate}
+                        </small>
+
+                    </div>
+                `;
+
+            } else if (isSeller) {
+
+                answerHTML = `
+                    <div class="ms-4 mt-3">
+
+                        <textarea
+                            id="answer-${question.id}"
+                            class="form-control mb-2"
+                            rows="2"
+                            placeholder="Write your answer..."
+                        ></textarea>
+
+                        <button
+                            class="btn btn-sm btn-success"
+                            onclick="answerQuestion(${question.id})"
+                        >
+                            <i class="bi bi-reply"></i>
+                            Answer
+                        </button>
+
+                    </div>
+                `;
+
+            } else {
+
+                answerHTML = `
+                    <div class="ms-4 mt-2">
+
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i>
+                            Waiting for seller response
+                        </small>
+
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="border-bottom pb-3 mb-3">
+
+                    <div>
+                        <strong>
+                            <i class="bi bi-person-circle"></i>
+                            ${escapeHTML(
+                                question.users?.name || "Student"
+                            )}
+                        </strong>
+
+                        <small class="text-muted ms-2">
+                            ${questionDate}
+                        </small>
+                    </div>
+
+                    <p class="mt-2 mb-1">
+                        ${escapeHTML(question.question)}
+                    </p>
+
+                    ${answerHTML}
+
+                </div>
+            `;
+
+        }).join("");
+
+    } catch (error) {
+
+        console.error("Load questions error:", error);
+
+        questionsList.innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load questions.
+            </div>
+        `;
+    }
+}
+
+async function answerQuestion(questionId) {
+
+    const input =
+        document.getElementById(
+            `answer-${questionId}`
+        );
+
+    const answer =
+        input.value.trim();
+
+    if (!answer) {
+        alert("Please enter an answer.");
+        return;
+    }
+
+    const token =
+        localStorage.getItem(
+            "recampus_token"
+        );
+
+    if (!token) {
+        alert("Please login first.");
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/questions/${questionId}`,
+            {
+                method: "PUT",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+
+                body: JSON.stringify({
+                    answer: answer
+                })
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message ||
+                "Failed to answer question"
+            );
+        }
+
+        alert("Answer posted successfully!");
+
+        await loadQuestions(
+            currentProduct.id
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Answer question error:",
+            error
+        );
+
+        alert(error.message);
+    }
+}
+
+async function askQuestion() {
+    const input = document.getElementById("questionInput");
+    const question = input.value.trim();
+
+    if (!question) {
+        alert("Please enter a question.");
+        return;
+    }
+
+    const token = localStorage.getItem("recampus_token");
+
+    if (!token) {
+        alert("Please login to ask a question.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/questions`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                product_id: currentProduct.id,
+                question: question
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to ask question");
+        }
+
+        input.value = "";
+
+        alert("Question posted successfully!");
+
+        await loadQuestions(currentProduct.id);
+
+    } catch (error) {
+        console.error("Ask question error:", error);
+        alert(error.message);
+    }
+}
+
+
+function escapeHTML(text) {
+    const div = document.createElement("div");
+    div.textContent = text || "";
+    return div.innerHTML;
+}
+
+function saveRecentlyViewed(product) {
+
+    let recentlyViewed =
+        JSON.parse(
+            localStorage.getItem(getRecentlyViewedKey())
+        ) || [];
+
+    // Remove existing copy of this product
+    recentlyViewed =
+        recentlyViewed.filter(
+            item => item.id !== product.id
+        );
+
+    // Use the same image logic as displayProduct()
+    const images =
+        product.product_images ||
+        product.images ||
+        [];
+
+    const imageUrl =
+        images.find(
+            image => image.is_primary
+        )?.image_url ||
+        images[0]?.image_url ||
+        null;
+
+    recentlyViewed.unshift({
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        condition: product.condition,
+        category: product.category,
+        image: imageUrl
+    });
+
+    // Keep only latest 6 products
+    recentlyViewed =
+        recentlyViewed.slice(0, 6);
+
+    localStorage.setItem(
+        getRecentlyViewedKey(),
+        JSON.stringify(recentlyViewed)
+    );
+}
+
+function getCurrentUserId() {
+    const token = localStorage.getItem("recampus_token");
+
+    if (!token) {
+        return null;
+    }
+
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return payload.userId;
+    } catch (error) {
+        console.error("Invalid token:", error);
+        return null;
+    }
+}
+
+function getRecentlyViewedKey() {
+    const userId = getCurrentUserId();
+
+    if (!userId) {
+        return "recampus_recently_viewed_guest";
+    }
+
+    return `recampus_recently_viewed_${userId}`;
+}
+
+// BASIC HTML ESCAPING
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+// SHOW ERROR
+function showError() {
+
+    document.getElementById("loading")
+        .classList.add("d-none");
+
+    document.getElementById(
+        "errorContainer"
+    ).classList.remove("d-none");
+
+}
+
+// START
+loadProduct();
+
+</script>
+
+</body>
+</html>

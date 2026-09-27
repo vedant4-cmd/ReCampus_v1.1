@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Seller Dashboard - ReCampus</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-primary shadow-sm">
+
+    <div class="container">
+
+        <a
+            class="navbar-brand fw-bold"
+            href="index.html"
+        >
+            <i class="bi bi-arrow-repeat"></i>
+            ReCampus Seller
+        </a>
+
+        <div class="d-flex gap-2">
+
+            <a
+                href="index.html"
+                class="btn btn-light btn-sm"
+            >
+                <i class="bi bi-shop"></i>
+                Marketplace
+            </a>
+
+            <button
+                class="btn btn-outline-light btn-sm"
+                onclick="logout()"
+            >
+                Logout
+            </button>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<div class="container py-5">
+
+    <div class="mb-4">
+
+        <h2 class="fw-bold">
+            Seller Dashboard
+        </h2>
+
+        <p class="text-muted">
+            Manage your products and track your sales.
+        </p>
+
+    </div>
+
+
+    <div
+        id="errorMessage"
+        class="alert alert-danger d-none"
+    ></div>
+
+
+    <div
+        id="loading"
+        class="text-center py-5"
+    >
+
+        <div
+            class="spinner-border text-primary"
+            role="status"
+        ></div>
+
+        <p class="text-muted mt-3">
+            Loading seller dashboard...
+        </p>
+
+    </div>
+
+
+    <div
+        id="dashboard"
+        class="d-none"
+    >
+
+        <!-- STAT CARDS -->
+
+        <div class="row g-4">
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="text-muted small">
+                            Total Products
+                        </div>
+
+                        <h2
+                            class="fw-bold mt-2"
+                            id="totalProducts"
+                        >
+                            0
+                        </h2>
+
+                        <i class="bi bi-box-seam fs-2 text-primary"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="text-muted small">
+                            Active Products
+                        </div>
+
+                        <h2
+                            class="fw-bold mt-2"
+                            id="activeProducts"
+                        >
+                            0
+                        </h2>
+
+                        <i class="bi bi-check-circle fs-2 text-success"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="text-muted small">
+                            Products Sold
+                        </div>
+
+                        <h2
+                            class="fw-bold mt-2"
+                            id="productsSold"
+                        >
+                            0
+                        </h2>
+
+                        <i class="bi bi-cart-check fs-2 text-warning"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 col-lg-3">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body">
+
+                        <div class="text-muted small">
+                            Total Sales
+                        </div>
+
+                        <h2
+                            class="fw-bold mt-2"
+                            id="totalSales"
+                        >
+                            ₹0
+                        </h2>
+
+                        <i class="bi bi-currency-rupee fs-2 text-danger"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCTS -->
+
+        <div class="card border-0 shadow-sm mt-5">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-box-seam"></i>
+                        My Products
+                    </h5>
+
+                    <a
+                        href="add-product.html"
+                        class="btn btn-primary btn-sm"
+                    >
+                        <i class="bi bi-plus-lg"></i>
+                        Add Product
+                    </a>
+
+                </div>
+
+
+                <div class="table-responsive">
+
+                    <table class="table align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Product</th>
+
+                                <th>Category</th>
+
+                                <th>Price</th>
+
+                                <th>Stock</th>
+
+                                <th>Status</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="productsTable">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RECENT ORDERS -->
+
+        <div class="card border-0 shadow-sm mt-4">
+
+            <div class="card-body">
+
+                <h5 class="fw-bold mb-3">
+
+                    <i class="bi bi-receipt"></i>
+                    Recent Orders
+
+                </h5>
+
+
+                <div class="table-responsive">
+
+                    <table class="table align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Product</th>
+
+                                <th>Quantity</th>
+
+                                <th>Price</th>
+
+                                <th>Payment</th>
+
+                                <th>Order Status</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="ordersTable">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SELLER ORDERS -->
+
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-box-seam"></i>
+                    Customer Orders
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <div id="sellerOrdersLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Loading orders...</p>
+                </div>
+
+                <div id="sellerOrdersEmpty" class="text-center py-4 d-none">
+                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                    <h5 class="mt-3">No orders yet</h5>
+                    <p class="text-muted">
+                        Orders for your products will appear here.
+                    </p>
+                </div>
+
+                <div class="table-responsive d-none" id="sellerOrdersTableWrapper">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Amount</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="sellerOrdersTableBody"></tbody>
+                    </table>
+                </div>
+    </div>
+</div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const API_URL =
+    "http://localhost:5000/api";
+
+
+function getToken() {
+
+    return localStorage.getItem(
+        "recampus_token"
+    );
+
+}
+
+
+function logout() {
+
+    localStorage.removeItem(
+        "recampus_token"
+    );
+
+    localStorage.removeItem(
+        "recampus_user"
+    );
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+function escapeHTML(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value ?? "";
+
+    return div.innerHTML;
+
+}
+
+
+async function loadDashboard() {
+
+    const token =
+        getToken();
+
+    if (!token) {
+
+        window.location.href =
+            "login.html";
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/seller-dashboard`,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok || !data.success) {
+
+            throw new Error(
+                data.message ||
+                "Failed to load dashboard"
+            );
+
+        }
+
+
+        // Statistics
+
+        document.getElementById(
+            "totalProducts"
+        ).textContent =
+            data.stats.totalProducts;
+
+
+        document.getElementById(
+            "activeProducts"
+        ).textContent =
+            data.stats.activeProducts;
+
+
+        document.getElementById(
+            "productsSold"
+        ).textContent =
+            data.stats.productsSold;
+
+
+        document.getElementById(
+            "totalSales"
+        ).textContent =
+            `₹${Number(
+                data.stats.totalSales
+            ).toLocaleString("en-IN")}`;
+
+
+        // Products
+
+        const productsTable =
+            document.getElementById(
+                "productsTable"
+            );
+
+
+        if (!data.products.length) {
+
+            productsTable.innerHTML = `
+                <tr>
+                    <td
+                        colspan="5"
+                        class="text-center text-muted py-4"
+                    >
+                        No products listed yet.
+                    </td>
+                </tr>
+            `;
+
+        } else {
+
+            productsTable.innerHTML =
+                data.products.map(product => {
+
+                    let badgeClass =
+                        "bg-secondary";
+
+                    if (
+                        product.status === "active"
+                    ) {
+                        badgeClass =
+                            "bg-success";
+                    }
+
+                    if (
+                        product.status === "sold"
+                    ) {
+                        badgeClass =
+                            "bg-warning text-dark";
+                    }
+
+                    return `
+                        <tr>
+
+                            <td>
+                                <strong>
+                                    ${escapeHTML(product.title)}
+                                </strong>
+                            </td>
+
+                            <td>
+                                ${escapeHTML(product.category)}
+                            </td>
+
+                            <td>
+                                ₹${Number(
+                                    product.price
+                                ).toLocaleString("en-IN")}
+                            </td>
+
+                            <td>
+                                ${product.stock}
+                            </td>
+
+                            <td>
+                                <span class="badge ${badgeClass}">
+                                    ${escapeHTML(product.status)}
+                                </span>
+                            </td>
+
+                        </tr>
+                    `;
+
+                }).join("");
+
+        }
+
+
+        // Orders
+
+        const ordersTable =
+            document.getElementById(
+                "ordersTable"
+            );
+
+
+        if (!data.orders.length) {
+
+            ordersTable.innerHTML = `
+                <tr>
+                    <td
+                        colspan="5"
+                        class="text-center text-muted py-4"
+                    >
+                        No orders yet.
+                    </td>
+                </tr>
+            `;
+
+        } else {
+
+            ordersTable.innerHTML =
+                data.orders
+                    .slice(0, 10)
+                    .map(item => {
+
+                        const payment =
+                            item.orders?.payment_status ||
+                            "unknown";
+
+                        const orderStatus =
+                            item.orders?.order_status ||
+                            "unknown";
+
+                        return `
+                            <tr>
+
+                                <td>
+                                    ${escapeHTML(
+                                        item.products?.title ||
+                                        "Product"
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${item.quantity}
+                                </td>
+
+                                <td>
+                                    ₹${Number(
+                                        item.price
+                                    ).toLocaleString("en-IN")}
+                                </td>
+
+                                <td>
+                                    <span class="badge ${
+                                        payment === "paid"
+                                            ? "bg-success"
+                                            : "bg-warning text-dark"
+                                    }">
+                                        ${escapeHTML(payment)}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    ${escapeHTML(orderStatus)}
+                                </td>
+
+                            </tr>
+                        `;
+
+                    }).join("");
+
+        }
+
+
+        document.getElementById(
+            "dashboard"
+        ).classList.remove("d-none");
+
+
+    } catch (error) {
+
+        console.error(
+            "Seller dashboard error:",
+            error
+        );
+
+
+        const errorMessage =
+            document.getElementById(
+                "errorMessage"
+            );
+
+        errorMessage.textContent =
+            error.message;
+
+        errorMessage.classList.remove(
+            "d-none"
+        );
+
+    } finally {
+
+        document.getElementById(
+            "loading"
+        ).classList.add("d-none");
+
+    }
+
+}
+
+async function loadSellerOrders() {
+    const loading = document.getElementById("sellerOrdersLoading");
+    const empty = document.getElementById("sellerOrdersEmpty");
+    const tableWrapper = document.getElementById("sellerOrdersTableWrapper");
+    const tableBody = document.getElementById("sellerOrdersTableBody");
+
+    try {
+        const token = localStorage.getItem("recampus_token");
+
+        if (!token) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        const response = await fetch(
+            `${API_URL}/seller-orders`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        loading.classList.add("d-none");
+
+        if (!data.success) {
+            throw new Error(data.message || "Failed to load orders");
+        }
+
+        if (!data.orders || data.orders.length === 0) {
+            empty.classList.remove("d-none");
+            return;
+        }
+
+        tableWrapper.classList.remove("d-none");
+
+        tableBody.innerHTML = data.orders.map(item => {
+            const order = item.orders;
+            const product = item.products;
+
+            return `
+                <tr>
+                    <td>
+                        <strong>#${order.id}</strong>
+                        <br>
+                        <small class="text-muted">
+                            ${new Date(order.created_at).toLocaleDateString()}
+                        </small>
+                    </td>
+
+                    <td>
+                        ${escapeHTML(product?.title || "Product")}
+                    </td>
+
+                    <td>
+                        ${item.quantity}
+                    </td>
+
+                    <td>
+                        ₹${Number(item.price * item.quantity).toFixed(2)}
+                    </td>
+
+                    <td>
+                        <span class="badge ${
+                            order.payment_status === "paid"
+                                ? "bg-success"
+                                : "bg-warning text-dark"
+                        }">
+                            ${escapeHTML(order.payment_status)}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="badge ${getOrderStatusClass(order.order_status)}">
+                            ${formatOrderStatus(order.order_status)}
+                        </span>
+                    </td>
+
+                    <td>
+                        ${
+                            order.payment_status === "paid"
+                                ? `
+                                    <select
+                                        class="form-select form-select-sm"
+                                        style="min-width: 130px"
+                                        onchange="updateSellerOrderStatus(${order.id}, this.value)"
+                                    >
+                                        ${getStatusOptions(order.order_status)}
+                                    </select>
+                                `
+                                : `
+                                    <small class="text-muted">
+                                        Payment pending
+                                    </small>
+                                `
+                        }
+                    </td>
+                </tr>
+            `;
+        }).join("");
+
+    } catch (error) {
+        console.error("Seller orders error:", error);
+
+        loading.classList.add("d-none");
+
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-danger py-4">
+                    Failed to load orders.
+                </td>
+            </tr>
+        `;
+
+        tableWrapper.classList.remove("d-none");
+    }
+}
+
+function formatOrderStatus(status) {
+    return status
+        .replace("_", " ")
+        .replace(/\b\w/g, letter => letter.toUpperCase());
+}
+
+function getOrderStatusClass(status) {
+    const classes = {
+        placed: "bg-secondary",
+        confirmed: "bg-primary",
+        processing: "bg-info text-dark",
+        shipped: "bg-warning text-dark",
+        delivered: "bg-success",
+        cancelled: "bg-danger"
+    };
+
+    return classes[status] || "bg-secondary";
+}
+
+function formatOrderStatus(status) {
+    return status
+        .replace("_", " ")
+        .replace(/\b\w/g, letter => letter.toUpperCase());
+}
+
+function getStatusOptions(currentStatus) {
+    const statuses = [
+        "confirmed",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled"
+    ];
+
+    return statuses.map(status => `
+        <option value="${status}" ${status === currentStatus ? "selected" : ""}>
+            ${formatOrderStatus(status)}
+        </option>
+    `).join("");
+}
+
+async function updateSellerOrderStatus(orderId, orderStatus) {
+    try {
+        const token = localStorage.getItem("recampus_token");
+
+        const response = await fetch(
+            `${API_URL}/seller-orders/${orderId}/status`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    order_status: orderStatus
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!data.success) {
+            alert(data.message || "Failed to update order status");
+            return;
+        }
+
+        alert("Order status updated successfully.");
+
+        loadSellerOrders();
+
+    } catch (error) {
+        console.error("Update order status error:", error);
+        alert("Something went wrong while updating the order.");
+    }
+}
+
+
+loadDashboard();
+loadSellerOrders();
+
+</script>
+
+</body>
+
+</html>

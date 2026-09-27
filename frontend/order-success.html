@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Order Successful - ReCampus</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+</head>
+
+
+<body class="bg-light">
+
+
+<nav class="navbar bg-white shadow-sm">
+
+    <div class="container">
+
+        <a
+            class="navbar-brand text-primary fw-bold"
+            href="index.html"
+        >
+            <i class="bi bi-arrow-repeat"></i>
+            ReCampus
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-7">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body text-center p-5">
+
+                    <div class="mb-4">
+
+                        <i
+                            class="bi bi-check-circle-fill text-success"
+                            style="font-size: 70px;"
+                        ></i>
+
+                    </div>
+
+
+                    <h2 class="fw-bold">
+                        Order Placed Successfully!
+                    </h2>
+
+
+                    <p class="text-muted mt-3">
+                        Thank you for shopping on ReCampus.
+                    </p>
+
+
+                    <div
+                        class="alert alert-light border mt-4"
+                    >
+
+                        <div class="small text-muted">
+                            Order ID
+                        </div>
+
+                        <div
+                            class="fw-bold fs-4"
+                            id="orderId"
+                        >
+                            —
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="alert alert-success"
+                        id="paymentStatusBox"
+                    >
+                        <i class="bi bi-check-circle"></i>
+                        Payment status:
+                        <strong id="paymentStatus">Checking...</strong>
+                    </div>
+
+                    <div
+                        class="alert alert-info"
+                        id="orderStatusBox"
+                    >
+                        <i class="bi bi-box-seam"></i>
+                        Order status:
+                        <strong id="orderStatus">Checking...</strong>
+                    </div>
+
+
+                    <div class="d-flex gap-2 justify-content-center mt-4">
+
+                        <a
+                            href="index.html"
+                            class="btn btn-primary"
+                        >
+                            <i class="bi bi-shop"></i>
+                            Continue Shopping
+                        </a>
+
+                        <a
+                            href="index.html"
+                            class="btn btn-outline-primary"
+                        >
+                            Browse Products
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const API_URL = "http://localhost:5000/api";
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const orderId =
+    params.get("id");
+
+const token =
+    localStorage.getItem("recampus_token");
+
+
+async function loadOrderStatus() {
+
+    if (!orderId || !token) {
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/orders/${orderId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!data.success) {
+            console.error("Failed to load order:", data.message);
+            return;
+        }
+
+        const order = data.order;
+
+        document.getElementById("orderId")
+            .textContent = `#${order.id}`;
+
+        document.getElementById("paymentStatus")
+            .textContent =
+                order.payment_status === "paid"
+                    ? "Paid"
+                    : order.payment_status;
+
+        document.getElementById("orderStatus")
+            .textContent =
+                order.order_status;
+
+    } catch (error) {
+
+        console.error(
+            "Order status error:",
+            error
+        );
+
+    }
+}
+
+
+if (orderId) {
+
+    document.getElementById("orderId")
+        .textContent = `#${orderId}`;
+
+    loadOrderStatus();
+
+} else {
+
+    const savedOrder =
+        JSON.parse(
+            localStorage.getItem("recampus_order") || "null"
+        );
+
+    if (savedOrder) {
+
+        document.getElementById("orderId")
+            .textContent = `#${savedOrder.id}`;
+
+        loadOrderStatus();
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>

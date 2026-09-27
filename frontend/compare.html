@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Compare Products - ReCampus</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+
+    <div class="container">
+
+        <a
+            class="navbar-brand"
+            href="index.html"
+        >
+            ReCampus
+        </a>
+
+        <a
+            href="index.html"
+            class="btn btn-outline-light btn-sm"
+        >
+            <i class="bi bi-arrow-left"></i>
+            Back to Products
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container py-5">
+
+    <h2 class="mb-4">
+        <i class="bi bi-bar-chart"></i>
+        Compare Products
+    </h2>
+
+    <div
+        id="comparisonContainer"
+        class="table-responsive"
+    ></div>
+
+</div>
+
+
+<script>
+
+const API_URL =
+    "http://localhost:5000/api";
+
+
+async function loadComparison() {
+
+    const container =
+        document.getElementById(
+            "comparisonContainer"
+        );
+
+    let compareList =
+        JSON.parse(
+            localStorage.getItem(getCompareKey())
+        ) || [];
+
+
+    if (compareList.length === 0) {
+
+        container.innerHTML = `
+
+            <div class="text-center py-5">
+
+                <i
+                    class="bi bi-bar-chart"
+                    style="font-size:50px;"
+                ></i>
+
+                <h4 class="mt-3">
+                    No products selected
+                </h4>
+
+                <p class="text-muted">
+                    Add products from the marketplace
+                    to compare them.
+                </p>
+
+                <a
+                    href="index.html"
+                    class="btn btn-primary"
+                >
+                    Browse Products
+                </a>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    try {
+
+        const products = [];
+
+        for (const productId of compareList) {
+
+            const response =
+                await fetch(
+                    `${API_URL}/products/${productId}`
+                );
+
+            const data =
+                await response.json();
+
+            if (
+                response.ok &&
+                data.success
+            ) {
+
+                products.push(
+                    data.product
+                );
+
+            }
+
+        }
+
+
+        if (products.length === 0) {
+
+            container.innerHTML = `
+                <div class="alert alert-warning">
+                    Unable to load comparison products.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        let html = `
+
+            <table
+                class="table table-bordered align-middle"
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th
+                            style="min-width:140px;"
+                        >
+                            Feature
+                        </th>
+        `;
+
+
+        products.forEach(product => {
+
+            const images =
+                product.images || [];
+
+            const image =
+                images.find(
+                    img => img.is_primary
+                )?.image_url ||
+                images[0]?.image_url ||
+                "https://placehold.co/300x200?text=ReCampus";
+
+
+            html += `
+
+                <th
+                    class="text-center"
+                    style="min-width:220px;"
+                >
+
+                    <img
+                        src="${image}"
+                        class="img-fluid rounded mb-2"
+                        style="
+                            width:180px;
+                            height:130px;
+                            object-fit:cover;
+                        "
+                        alt="${escapeHTML(
+                            product.title
+                        )}"
+                    >
+
+                    <div class="fw-bold">
+                        ${escapeHTML(
+                            product.title
+                        )}
+                    </div>
+
+                    <button
+                        class="btn btn-sm btn-outline-danger mt-2"
+                        onclick="removeFromCompare(${product.id})"
+                    >
+                        <i class="bi bi-trash"></i>
+                        Remove
+                    </button>
+
+                </th>
+
+            `;
+
+        });
+
+
+        html += `
+                    </tr>
+                </thead>
+
+                <tbody>
+        `;
+
+
+        // PRICE
+        html += `
+            <tr>
+                <th>Price</th>
+        `;
+
+        products.forEach(product => {
+
+            html += `
+                <td class="text-center fw-bold">
+                    ₹${product.price}
+                </td>
+            `;
+
+        });
+
+        html += `</tr>`;
+
+
+        // CATEGORY
+        html += `
+            <tr>
+                <th>Category</th>
+        `;
+
+        products.forEach(product => {
+
+            html += `
+                <td class="text-center">
+                    ${escapeHTML(
+                        product.category || "-"
+                    )}
+                </td>
+            `;
+
+        });
+
+        html += `</tr>`;
+
+
+        // CONDITION
+        html += `
+            <tr>
+                <th>Condition</th>
+        `;
+
+        products.forEach(product => {
+
+            html += `
+                <td class="text-center">
+                    ${escapeHTML(
+                        product.condition || "-"
+                    )}
+                </td>
+            `;
+
+        });
+
+        html += `</tr>`;
+
+
+        // STOCK
+        html += `
+            <tr>
+                <th>Stock</th>
+        `;
+
+        products.forEach(product => {
+
+            html += `
+                <td class="text-center">
+                    ${product.stock ?? 0}
+                </td>
+            `;
+
+        });
+
+        html += `</tr>`;
+
+
+        // COLLEGE
+        html += `
+            <tr>
+                <th>College</th>
+        `;
+
+        products.forEach(product => {
+
+            html += `
+                <td class="text-center">
+                    ${escapeHTML(
+                        product.colleges?.name || "-"
+                    )}
+                </td>
+            `;
+
+        });
+
+        html += `</tr>`;
+
+
+        // VIEW PRODUCT
+        html += `
+            <tr>
+                <th>Action</th>
+        `;
+
+        products.forEach(product => {
+
+            html += `
+                <td class="text-center">
+
+                    <a
+                        href="product.html?id=${product.id}"
+                        class="btn btn-primary btn-sm"
+                    >
+                        View Product
+                    </a>
+
+                </td>
+            `;
+
+        });
+
+        html += `
+                    </tr>
+                </tbody>
+
+            </table>
+        `;
+
+
+        container.innerHTML = html;
+
+
+    } catch (error) {
+
+        console.error(
+            "Comparison error:",
+            error
+        );
+
+        container.innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load comparison.
+            </div>
+        `;
+    }
+}
+
+
+function removeFromCompare(productId) {
+
+    let compareList =
+        JSON.parse(
+            localStorage.getItem(getCompareKey())
+        ) || [];
+
+    compareList =
+        compareList.filter(
+            id => id !== productId
+        );
+
+    localStorage.setItem(
+        getCompareKey(),
+        JSON.stringify(compareList)
+    );
+
+    loadComparison();
+}
+
+function getCurrentUserId() {
+    const token = localStorage.getItem("recampus_token");
+
+    if (!token) {
+        return null;
+    }
+
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return payload.userId;
+    } catch (error) {
+        console.error("Invalid token:", error);
+        return null;
+    }
+}
+
+function getCompareKey() {
+    const userId = getCurrentUserId();
+
+    if (!userId) {
+        return "recampus_compare_guest";
+    }
+
+    return `recampus_compare_${userId}`;
+}
+
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        text || "";
+
+    return div.innerHTML;
+}
+
+
+loadComparison();
+
+</script>
+
+</body>
+</html>

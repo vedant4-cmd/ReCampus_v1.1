@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Checkout - ReCampus</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+</head>
+
+
+<body class="bg-light">
+
+
+<nav class="navbar bg-white shadow-sm">
+
+    <div class="container">
+
+        <a
+            class="navbar-brand text-primary fw-bold"
+            href="index.html"
+        >
+            <i class="bi bi-arrow-repeat"></i>
+            ReCampus
+        </a>
+
+        <a
+            href="cart.html"
+            class="btn btn-outline-primary"
+        >
+            <i class="bi bi-cart3"></i>
+            Back to Cart
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container py-5">
+
+    <div class="row g-4">
+
+        <!-- CUSTOMER DETAILS -->
+
+        <div class="col-lg-7">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <h4 class="fw-bold mb-4">
+                        <i class="bi bi-credit-card"></i>
+                        Checkout
+                    </h4>
+
+
+                    <div
+                        id="message"
+                        class="alert d-none"
+                    ></div>
+
+
+                    <form id="checkoutForm">
+
+                        <h6 class="fw-bold mb-3">
+                            Contact Information
+                        </h6>
+
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Full Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="name"
+                                class="form-control"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Email
+                            </label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                class="form-control"
+                                required
+                            >
+
+                        </div>
+
+
+                        <hr class="my-4">
+
+
+                        <h6 class="fw-bold mb-3">
+                            Delivery Details
+                        </h6>
+
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Delivery Address
+                            </label>
+
+                            <textarea
+                                id="address"
+                                class="form-control"
+                                rows="3"
+                                placeholder="Enter your delivery address"
+                                required
+                            ></textarea>
+
+                        </div>
+
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+                                    City
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="city"
+                                    class="form-control"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+                                    Pincode
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="pincode"
+                                    class="form-control"
+                                    maxlength="6"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            id="placeOrderBtn"
+                            class="btn btn-primary w-100 py-2 mt-3"
+                        >
+                            Continue to Payment
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ORDER SUMMARY -->
+
+        <div class="col-lg-5">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <h5 class="fw-bold mb-3">
+                        Order Summary
+                    </h5>
+
+
+                    <div id="orderItems"></div>
+
+
+                    <hr>
+
+
+                    <div class="d-flex justify-content-between">
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <span id="subtotal">
+                            ₹0
+                        </span>
+
+                    </div>
+
+
+                    <div class="d-flex justify-content-between mt-2">
+
+                        <span>
+                            Delivery
+                        </span>
+
+                        <span class="text-success">
+                            Free
+                        </span>
+
+                    </div>
+
+
+                    <hr>
+
+
+                    <div class="d-flex justify-content-between">
+
+                        <strong>
+                            Total
+                        </strong>
+
+                        <strong
+                            class="text-primary"
+                            id="total"
+                        >
+                            ₹0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+// ======================================================
+// AUTHENTICATION
+// ======================================================
+
+const token =
+    localStorage.getItem("recampus_token");
+
+const userData =
+    localStorage.getItem("recampus_user");
+
+
+if (!token || !userData) {
+
+    alert("Please login before checkout.");
+
+    window.location.href = "login.html";
+
+    throw new Error("User is not logged in.");
+
+}
+
+
+let user;
+
+try {
+
+    user = JSON.parse(userData);
+
+} catch (error) {
+
+    console.error(
+        "User data error:",
+        error
+    );
+
+    localStorage.removeItem("recampus_user");
+    localStorage.removeItem("recampus_token");
+
+    alert("Your login session is invalid. Please login again.");
+
+    window.location.href = "login.html";
+
+    throw new Error("Invalid user data.");
+
+}
+
+
+// ======================================================
+// FILL USER INFORMATION
+// ======================================================
+
+document.getElementById("name").value =
+    user.name || "";
+
+document.getElementById("email").value =
+    user.email || "";
+
+
+// ======================================================
+// LOAD CART
+// ======================================================
+
+let cart = [];
+
+const savedCart =
+    localStorage.getItem("recampus_cart");
+
+
+console.log(
+    "CART RAW DATA:",
+    savedCart
+);
+
+
+try {
+
+    cart =
+        JSON.parse(
+            savedCart || "[]"
+        );
+
+
+    if (!Array.isArray(cart)) {
+
+        cart = [];
+
+    }
+
+} catch (error) {
+
+    console.error(
+        "Cart data error:",
+        error
+    );
+
+    cart = [];
+
+}
+
+
+console.log(
+    "CHECKOUT ITEMS:",
+    cart
+);
+
+
+console.log(
+    "CHECKOUT IMAGE:",
+    cart[0]?.image
+);
+
+
+// ======================================================
+// EMPTY CART CHECK
+// ======================================================
+
+if (cart.length === 0) {
+
+    alert("Your cart is empty.");
+
+    window.location.href =
+        "cart.html";
+
+    throw new Error("Cart is empty.");
+
+}
+
+
+// ======================================================
+// DISPLAY ORDER SUMMARY
+// ======================================================
+
+let subtotal = 0;
+
+
+const orderItems =
+    document.getElementById("orderItems");
+
+
+cart.forEach(item => {
+
+    const quantity =
+        Number(item.quantity) || 1;
+
+
+    const price =
+        Number(item.price) || 0;
+
+
+    const itemTotal =
+        price * quantity;
+
+
+    subtotal += itemTotal;
+
+
+    orderItems.innerHTML += `
+
+        <div class="d-flex mb-3">
+
+            <img
+                src="${item.image || 'https://placehold.co/65x65?text=No+Image'}"
+                width="65"
+                height="65"
+                class="rounded me-3"
+                style="object-fit:cover"
+                alt="${item.title || 'Product'}"
+                onerror="this.src='https://placehold.co/65x65?text=No+Image'"
+            >
+
+            <div class="flex-grow-1">
+
+                <div class="fw-semibold">
+                    ${item.title || "Product"}
+                </div>
+
+                <small class="text-muted">
+                    Qty: ${quantity}
+                </small>
+
+            </div>
+
+            <div class="fw-semibold">
+                ₹${itemTotal.toLocaleString("en-IN")}
+            </div>
+
+        </div>
+
+    `;
+
+});
+
+
+// ======================================================
+// UPDATE TOTALS
+// ======================================================
+
+document.getElementById("subtotal").textContent =
+    `₹${subtotal.toLocaleString("en-IN")}`;
+
+
+document.getElementById("total").textContent =
+    `₹${subtotal.toLocaleString("en-IN")}`;
+
+
+// ======================================================
+// CHECKOUT FORM
+// ======================================================
+
+document
+    .getElementById("checkoutForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const button =
+                document.getElementById("placeOrderBtn");
+
+
+            const name =
+                document
+                    .getElementById("name")
+                    .value
+                    .trim();
+
+
+            const email =
+                document
+                    .getElementById("email")
+                    .value
+                    .trim();
+
+
+            const address =
+                document
+                    .getElementById("address")
+                    .value
+                    .trim();
+
+
+            const city =
+                document
+                    .getElementById("city")
+                    .value
+                    .trim();
+
+
+            const pincode =
+                document
+                    .getElementById("pincode")
+                    .value
+                    .trim();
+
+
+            // ==================================================
+            // VALIDATE PINCODE
+            // ==================================================
+
+            if (!/^[0-9]{6}$/.test(pincode)) {
+
+                alert(
+                    "Please enter a valid 6-digit pincode."
+                );
+
+                return;
+
+            }
+
+
+            // ==================================================
+            // DISABLE BUTTON
+            // ==================================================
+
+            button.disabled = true;
+
+
+            button.innerHTML = `
+                <span class="spinner-border spinner-border-sm"></span>
+                Creating order...
+            `;
+
+
+            try {
+
+                // ==============================================
+                // PREPARE ORDER ITEMS
+                // ==============================================
+
+                const items =
+                    cart.map(item => ({
+
+                        product_id:
+                            Number(item.id),
+
+                        quantity:
+                            Number(item.quantity)
+
+                    }));
+
+
+                console.log(
+                    "ORDER ITEMS:",
+                    items
+                );
+
+
+                // ==============================================
+                // STEP 1: CREATE DATABASE ORDER
+                // ==============================================
+
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/orders",
+                        {
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json",
+
+                                "Authorization":
+                                    `Bearer ${token}`
+
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    items
+                                })
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "CREATE ORDER RESPONSE:",
+                    data
+                );
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "Failed to create order"
+                    );
+
+                }
+
+
+                const orderId =
+                    data.order.id;
+
+
+                // ==============================================
+                // SAVE DELIVERY INFORMATION
+                // ==============================================
+
+                localStorage.setItem(
+                    "recampus_delivery",
+
+                    JSON.stringify({
+
+                        name,
+                        email,
+                        address,
+                        city,
+                        pincode
+
+                    })
+
+                );
+
+
+                // ==============================================
+                // SAVE CREATED ORDER
+                // ==============================================
+
+                localStorage.setItem(
+                    "recampus_order",
+
+                    JSON.stringify(
+                        data.order
+                    )
+
+                );
+
+
+                // ==============================================
+                // STEP 2: CREATE RAZORPAY ORDER
+                // ==============================================
+
+                button.innerHTML = `
+                    <span class="spinner-border spinner-border-sm"></span>
+                    Opening Payment...
+                `;
+
+
+                const paymentResponse =
+                    await fetch(
+                        `http://localhost:5000/api/payments/create/${orderId}`,
+                        {
+                            method: "POST",
+
+                            headers: {
+
+                                "Authorization":
+                                    `Bearer ${token}`
+
+                            }
+
+                        }
+                    );
+
+
+                const paymentData =
+                    await paymentResponse.json();
+
+
+                console.log(
+                    "RAZORPAY ORDER RESPONSE:",
+                    paymentData
+                );
+
+
+                if (
+                    !paymentResponse.ok ||
+                    !paymentData.success
+                ) {
+
+                    throw new Error(
+                        paymentData.message ||
+                        "Failed to create payment"
+                    );
+
+                }
+
+
+                const razorpayOrder =
+                    paymentData.razorpay_order;
+
+
+                // ==============================================
+                // STEP 3: OPEN RAZORPAY CHECKOUT
+                // ==============================================
+
+                const options = {
+
+                    key:
+                        paymentData.key_id,
+
+
+                    amount:
+                        razorpayOrder.amount,
+
+
+                    currency:
+                        razorpayOrder.currency,
+
+
+                    name:
+                        "ReCampus",
+
+
+                    description:
+                        `Payment for Order #${orderId}`,
+
+
+                    order_id:
+                        razorpayOrder.id,
+
+
+                    prefill: {
+
+                        name,
+
+                        email
+
+                    },
+
+
+                    theme: {
+
+                        color:
+                            "#0d6efd"
+
+                    },
+
+
+                    // ==========================================
+                    // PAYMENT SUCCESS
+                    // ==========================================
+
+                    handler:
+                        async function(payment) {
+
+                            try {
+
+                                button.innerHTML = `
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                    Verifying Payment...
+                                `;
+
+
+                                // ==================================
+                                // STEP 4: VERIFY PAYMENT
+                                // ==================================
+
+                                const verifyResponse =
+                                    await fetch(
+                                        "http://localhost:5000/api/payments/verify",
+                                        {
+                                            method: "POST",
+
+                                            headers: {
+
+                                                "Content-Type":
+                                                    "application/json",
+
+                                                "Authorization":
+                                                    `Bearer ${token}`
+
+                                            },
+
+                                            body:
+                                                JSON.stringify({
+
+                                                    orderId,
+
+                                                    razorpay_order_id:
+                                                        payment.razorpay_order_id,
+
+                                                    razorpay_payment_id:
+                                                        payment.razorpay_payment_id,
+
+                                                    razorpay_signature:
+                                                        payment.razorpay_signature
+
+                                                })
+
+                                        }
+                                    );
+
+
+                                const verifyData =
+                                    await verifyResponse.json();
+
+
+                                console.log(
+                                    "PAYMENT VERIFICATION:",
+                                    verifyData
+                                );
+
+
+                                if (
+                                    !verifyResponse.ok ||
+                                    !verifyData.success
+                                ) {
+
+                                    throw new Error(
+                                        verifyData.message ||
+                                        "Payment verification failed"
+                                    );
+
+                                }
+
+
+                                // ==================================
+                                // UPDATE SAVED ORDER
+                                // ==================================
+
+                                localStorage.setItem(
+                                    "recampus_order",
+
+                                    JSON.stringify(
+                                        verifyData.order
+                                    )
+
+                                );
+
+
+                                // ==================================
+                                // PAYMENT CONFIRMED
+                                // CLEAR CART
+                                // ==================================
+
+                                localStorage.removeItem(
+                                    "recampus_cart"
+                                );
+
+
+                                alert(
+                                    "Payment successful!"
+                                );
+
+
+                                // ==================================
+                                // GO TO SUCCESS PAGE
+                                // ==================================
+
+                                window.location.href =
+                                    `order-success.html?id=${orderId}`;
+
+
+                            } catch (error) {
+
+                                console.error(
+                                    "Payment verification error:",
+                                    error
+                                );
+
+
+                                alert(
+                                    error.message ||
+                                    "Payment verification failed."
+                                );
+
+
+                                button.disabled =
+                                    false;
+
+
+                                button.innerHTML = `
+                                    Continue to Payment
+                                    <i class="bi bi-arrow-right"></i>
+                                `;
+
+                            }
+
+                        },
+
+
+                    // ==========================================
+                    // RAZORPAY WINDOW CLOSED
+                    // ==========================================
+
+                    modal: {
+
+                        ondismiss:
+                            function() {
+
+                                button.disabled =
+                                    false;
+
+
+                                button.innerHTML = `
+                                    Continue to Payment
+                                    <i class="bi bi-arrow-right"></i>
+                                `;
+
+
+                                alert(
+                                    "Payment window closed. Your order is still pending payment."
+                                );
+
+                            }
+
+                    }
+
+                };
+
+
+                // ==============================================
+                // CREATE RAZORPAY INSTANCE
+                // ==============================================
+
+                const razorpay =
+                    new Razorpay(options);
+
+
+                // ==============================================
+                // PAYMENT FAILED
+                // ==============================================
+
+                razorpay.on(
+                    "payment.failed",
+
+                    function(response) {
+
+                        console.error(
+                            "Payment failed:",
+                            response.error
+                        );
+
+
+                        alert(
+                            response.error.description ||
+                            "Payment failed. Please try again."
+                        );
+
+
+                        button.disabled =
+                            false;
+
+
+                        button.innerHTML = `
+                            Continue to Payment
+                            <i class="bi bi-arrow-right"></i>
+                        `;
+
+                    }
+                );
+
+
+                // ==============================================
+                // OPEN RAZORPAY
+                // ==============================================
+
+                razorpay.open();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Checkout error:",
+                    error
+                );
+
+
+                alert(
+                    error.message ||
+                    "Something went wrong during checkout."
+                );
+
+
+                button.disabled =
+                    false;
+
+
+                button.innerHTML = `
+                    Continue to Payment
+                    <i class="bi bi-arrow-right"></i>
+                `;
+
+            }
+
+        }
+    );
+
+</script>
+
+
+</body>
+
+</html>
