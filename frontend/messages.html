@@ -412,16 +412,21 @@ function displayConversations() {
 
 async function openConversation(userId) {
 
+    if (!userId || userId === currentUserId) {
+        return;
+    }
+
     currentConversationUserId = userId;
 
-    document.getElementById(
-        "messageInput"
-    ).disabled = false;
+    // Enable message input immediately
+    const messageInput =
+        document.getElementById("messageInput");
 
-    document.getElementById(
-        "sendButton"
-    ).disabled = false;
+    const sendButton =
+        document.getElementById("sendButton");
 
+    messageInput.disabled = false;
+    sendButton.disabled = false;
 
     document.getElementById(
         "chatHeader"
@@ -432,10 +437,29 @@ async function openConversation(userId) {
         </strong>
     `;
 
+    // Clear previous chat while loading
+    document.getElementById(
+        "messagesContainer"
+    ).innerHTML = `
+        <div class="empty-chat">
+            <div>
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+                <p class="mt-2 mb-0">
+                    Loading conversation...
+                </p>
+            </div>
+        </div>
+    `;
 
     await loadConversation(userId);
 
     await loadConversations();
+
+    // Keep input active even when there are no previous messages
+    messageInput.disabled = false;
+    sendButton.disabled = false;
+
+    messageInput.focus();
 }
 
 
@@ -466,11 +490,23 @@ async function loadConversation(userId) {
 
         const data = await response.json();
 
-        if (!data.success) {
+        // No existing conversation is okay.
+        // It means this is a new conversation.
+        if (!response.ok || !data.success) {
 
             container.innerHTML = `
-                <div class="text-danger p-3">
-                    Failed to load conversation.
+                <div class="empty-chat">
+                    <div>
+                        <i class="bi bi-chat fs-1 text-muted"></i>
+
+                        <p class="mt-2 mb-0">
+                            No messages yet.
+                        </p>
+
+                        <small class="text-muted">
+                            Start the conversation below.
+                        </small>
+                    </div>
                 </div>
             `;
 
@@ -481,11 +517,21 @@ async function loadConversation(userId) {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Load conversation error:",
+            error
+        );
 
+        // Still allow the user to type.
         container.innerHTML = `
-            <div class="text-danger p-3">
-                Failed to load messages.
+            <div class="empty-chat">
+                <div>
+                    <i class="bi bi-chat fs-1 text-muted"></i>
+
+                    <p class="mt-2 mb-0">
+                        Start a new conversation.
+                    </p>
+                </div>
             </div>
         `;
     }
@@ -565,24 +611,18 @@ async function sendMessage() {
         return;
     }
 
-
     const input =
-        document.getElementById(
-            "messageInput"
-        );
+        document.getElementById("messageInput");
 
     const message =
         input.value.trim();
-
 
     if (!message) {
         return;
     }
 
-
     const token =
         localStorage.getItem("recampus_token");
-
 
     try {
 
@@ -597,18 +637,13 @@ async function sendMessage() {
                 },
 
                 body: JSON.stringify({
-                    receiver_id:
-                        currentConversationUserId,
-
+                    receiver_id: currentConversationUserId,
                     message: message
                 })
             }
         );
 
-
-        const data =
-            await response.json();
-
+        const data = await response.json();
 
         if (!data.success) {
 
@@ -620,18 +655,65 @@ async function sendMessage() {
             return;
         }
 
-
+        // Clear textbox
         input.value = "";
 
-        await loadConversation(
-            currentConversationUserId
-        );
+        // Add the new message directly to the chat
+        const container =
+            document.getElementById(
+                "messagesContainer"
+            );
 
-        await loadConversations();
+        const messageRow =
+            document.createElement("div");
+
+        messageRow.className =
+            "message-row mine";
+
+        messageRow.innerHTML = `
+            <div class="message-bubble">
+
+                <div>
+                    ${escapeHTML(message)}
+                </div>
+
+                <div class="message-time">
+                    ${formatDate(new Date())}
+                </div>
+
+            </div>
+        `;
+
+        // If "No messages yet" is currently displayed,
+        // remove it.
+        const emptyChat =
+            container.querySelector(".empty-chat");
+
+        if (emptyChat) {
+            container.innerHTML = "";
+        }
+
+        container.appendChild(messageRow);
+
+        // Scroll to latest message
+        container.scrollTop =
+            container.scrollHeight;
+
+        // Make absolutely sure input remains visible/enabled
+        input.disabled = false;
+
+        document.getElementById(
+            "sendButton"
+        ).disabled = false;
+
+        input.focus();
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Failed to send message:",
+            error
+        );
 
         alert(
             "Failed to send message"
