@@ -272,6 +272,7 @@
 
 </div>
 
+<script src="config.js"></script>
 
 <script>
 
@@ -590,7 +591,7 @@ document
 
                 const response =
                     await fetch(
-                        "http://localhost:5000/api/orders",
+                        `${API_URL}/orders`,
                         {
                             method: "POST",
 
@@ -686,7 +687,7 @@ document
 
                 const paymentResponse =
                     await fetch(
-                        `http://localhost:5000/api/payments/create/${orderId}`,
+                        `${API_URL}/payments/create/${orderId}`,
                         {
                             method: "POST",
 
@@ -796,7 +797,7 @@ document
 
                                 const verifyResponse =
                                     await fetch(
-                                        "http://localhost:5000/api/payments/verify",
+                                        `${API_URL}/payments/verify`,
                                         {
                                             method: "POST",
 

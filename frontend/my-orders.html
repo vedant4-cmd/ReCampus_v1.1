@@ -124,6 +124,7 @@
 
 </main>
 
+<script src="config.js"></script>
 
 <script>
 
@@ -145,7 +146,7 @@ async function loadOrders() {
     try {
 
         const response = await fetch(
-            "http://localhost:5000/api/orders/my-orders",
+            `${API_URL}/orders/my-orders`,
             {
                 headers: {
                     "Authorization":
