@@ -9,7 +9,8 @@ let colleges = [];
 
 async function apiRequest(endpoint, options = {}) {
 
-    const token = localStorage.getItem("token");
+    const token =
+        localStorage.getItem("token");
 
     const headers = {
         "Content-Type": "application/json",
@@ -17,37 +18,55 @@ async function apiRequest(endpoint, options = {}) {
     };
 
     if (token) {
-        headers.Authorization = `Bearer ${token}`;
+        headers.Authorization =
+            `Bearer ${token}`;
     }
 
-    const response = await fetch(`/api${endpoint}`, {
-        ...options,
-        headers
-    });
+    const response =
+        await fetch(
+            `${API_URL}${endpoint}`,
+            {
+                ...options,
+                headers
+            }
+        );
 
     let data;
 
     try {
-        data = await response.json();
+
+        data =
+            await response.json();
+
     } catch {
+
         data = {};
+
     }
 
     if (!response.ok) {
 
         if (response.status === 401) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
+
+            localStorage.removeItem(
+                "token"
+            );
+
+            localStorage.removeItem(
+                "user"
+            );
+
         }
 
         throw new Error(
-            data.message || "Request failed."
+            data.message ||
+            "Request failed."
         );
+
     }
 
     return data;
 }
-
 
 // ============================================================
 // UTILITIES
@@ -3923,6 +3942,10 @@ function showReviewForm(orderId) {
 // ADMIN
 // ============================================================
 
+// ============================================================
+// ADMIN
+// ============================================================
+
 function showAdminDashboard() {
 
     if (
@@ -3945,9 +3968,17 @@ function showAdminDashboard() {
 
 
     loadAdminStats();
+
+    // Load seller commission only for admin
+    loadAdminCommission();
+
     loadPendingSellers();
 }
 
+
+/* ============================================================
+   ADMIN STATS
+   ============================================================ */
 
 async function loadAdminStats() {
 
@@ -3980,7 +4011,7 @@ async function loadAdminStats() {
                     <div>
 
                         <div class="stat-number">
-                            ${stats.users ?? 0}
+                            ${stats.users ?? stats.totalUsers ?? 0}
                         </div>
 
                         <div class="text-muted">
@@ -4003,7 +4034,7 @@ async function loadAdminStats() {
                     <div>
 
                         <div class="stat-number">
-                            ${stats.sellers ?? 0}
+                            ${stats.sellers ?? stats.totalSellers ?? 0}
                         </div>
 
                         <div class="text-muted">
@@ -4026,7 +4057,7 @@ async function loadAdminStats() {
                     <div>
 
                         <div class="stat-number">
-                            ${stats.products ?? 0}
+                            ${stats.products ?? stats.totalProducts ?? 0}
                         </div>
 
                         <div class="text-muted">
@@ -4049,7 +4080,7 @@ async function loadAdminStats() {
                     <div>
 
                         <div class="stat-number">
-                            ${stats.orders ?? 0}
+                            ${stats.orders ?? stats.totalOrders ?? 0}
                         </div>
 
                         <div class="text-muted">
@@ -4061,21 +4092,822 @@ async function loadAdminStats() {
                 </div>
 
             </div>
+
         `;
 
 
     } catch (error) {
 
         container.innerHTML = `
+
             <div class="col-12">
+
                 <div class="alert alert-danger">
-                    ${escapeHtml(error.message)}
+
+                    ${escapeHtml(
+                        error.message ||
+                        "Unable to load admin statistics."
+                    )}
+
                 </div>
+
             </div>
+
         `;
     }
 }
 
+
+/* ============================================================
+   ADMIN SELLER COMMISSION
+   Student Seller = 5%
+   Business Seller = 10%
+
+   Commission information is displayed ONLY
+   inside the admin dashboard.
+   ============================================================ */
+
+async function loadAdminCommission() {
+
+    const dashboardSection =
+        document.getElementById(
+            "adminDashboardSection"
+        );
+
+
+    if (!dashboardSection) {
+        return;
+    }
+
+
+    /*
+     * Remove an old commission section first.
+     * This prevents duplicate commission cards
+     * if the admin dashboard is opened multiple times.
+     */
+
+    const existingCommission =
+        document.getElementById(
+            "adminCommissionSection"
+        );
+
+
+    if (existingCommission) {
+
+        existingCommission.remove();
+
+    }
+
+
+    /*
+     * Create the commission container.
+     */
+
+    const commissionSection =
+        document.createElement(
+            "div"
+        );
+
+
+    commissionSection.id =
+        "adminCommissionSection";
+
+    commissionSection.className =
+        "mt-4";
+
+
+    commissionSection.innerHTML = `
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+
+                    <div>
+
+                        <h5 class="fw-bold mb-1">
+
+                            <i class="bi bi-cash-coin me-2"></i>
+
+                            Seller Commission
+
+                        </h5>
+
+                        <p class="text-muted mb-0">
+
+                            Commission generated from successful seller sales.
+
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-dark btn-sm"
+                        onclick="loadAdminCommission()"
+                    >
+
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+
+                        Refresh
+
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="adminCommissionLoading"
+                    class="text-center py-4"
+                >
+
+                    <div
+                        class="spinner-border"
+                        role="status"
+                    ></div>
+
+                    <p class="text-muted mt-2 mb-0">
+
+                        Loading commission data...
+
+                    </p>
+
+                </div>
+
+
+                <div
+                    id="adminCommissionContent"
+                    class="d-none"
+                >
+
+                    <div class="row g-3">
+
+                        <!-- Total Commission -->
+
+                        <div class="col-md-3">
+
+                            <div class="border rounded p-3 h-100">
+
+                                <div class="text-muted small mb-1">
+
+                                    Total Commission
+
+                                </div>
+
+                                <div
+                                    id="adminTotalCommission"
+                                    class="fs-4 fw-bold"
+                                >
+                                    ₹0.00
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Student Seller Commission -->
+
+                        <div class="col-md-3">
+
+                            <div class="border rounded p-3 h-100">
+
+                                <div class="text-muted small mb-1">
+
+                                    Student Seller
+
+                                    <span class="badge bg-primary">
+                                        5%
+                                    </span>
+
+                                </div>
+
+                                <div
+                                    id="adminStudentCommission"
+                                    class="fs-4 fw-bold"
+                                >
+                                    ₹0.00
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Business Seller Commission -->
+
+                        <div class="col-md-3">
+
+                            <div class="border rounded p-3 h-100">
+
+                                <div class="text-muted small mb-1">
+
+                                    Business Seller
+
+                                    <span class="badge bg-dark">
+                                        10%
+                                    </span>
+
+                                </div>
+
+                                <div
+                                    id="adminBusinessCommission"
+                                    class="fs-4 fw-bold"
+                                >
+                                    ₹0.00
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Commission Sales -->
+
+                        <div class="col-md-3">
+
+                            <div class="border rounded p-3 h-100">
+
+                                <div class="text-muted small mb-1">
+
+                                    Commission Sales
+
+                                </div>
+
+                                <div
+                                    id="adminCommissionSales"
+                                    class="fs-4 fw-bold"
+                                >
+                                    0
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Total Sales -->
+
+                    <div class="mt-4">
+
+                        <div class="border rounded p-3">
+
+                            <div class="row align-items-center">
+
+                                <div class="col-md-6">
+
+                                    <div class="text-muted small">
+
+                                        Sales generating commission
+
+                                    </div>
+
+                                    <div
+                                        id="adminCommissionTotalSales"
+                                        class="fs-5 fw-bold"
+                                    >
+                                        ₹0.00
+                                    </div>
+
+                                </div>
+
+
+                                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+
+                                    <span class="badge bg-success">
+
+                                        Paid Sales Only
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Commission History -->
+
+                    <div class="mt-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+
+                            <h6 class="fw-bold mb-0">
+
+                                Commission History
+
+                            </h6>
+
+                        </div>
+
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>
+                                            Order
+                                        </th>
+
+                                        <th>
+                                            Seller
+                                        </th>
+
+                                        <th>
+                                            Seller Type
+                                        </th>
+
+                                        <th>
+                                            Sale Amount
+                                        </th>
+
+                                        <th>
+                                            Rate
+                                        </th>
+
+                                        <th>
+                                            Commission
+                                        </th>
+
+                                        <th>
+                                            Date
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody
+                                    id="adminCommissionHistory"
+                                >
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="adminCommissionError"
+                    class="alert alert-danger d-none mt-3"
+                ></div>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    /*
+     * Add commission section to admin dashboard.
+     *
+     * This means commission information is not shown
+     * on buyer or seller dashboards.
+     */
+
+    dashboardSection.appendChild(
+        commissionSection
+    );
+
+
+    try {
+
+        const data =
+            await apiRequest(
+                "/admin/commission"
+            );
+
+
+        const commission =
+            data.commission || {};
+
+
+        const history =
+            Array.isArray(data.history)
+                ? data.history
+                : [];
+
+
+        /*
+         * Format currency using the existing
+         * application currency style.
+         */
+
+        function formatAdminCommissionMoney(
+            value
+        ) {
+
+            const amount =
+                Number(value || 0);
+
+
+            return `₹${amount.toLocaleString(
+                "en-IN",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            )}`;
+
+        }
+
+
+        /*
+         * Summary values
+         */
+
+        document.getElementById(
+            "adminTotalCommission"
+        ).textContent =
+            formatAdminCommissionMoney(
+                commission.totalCommission
+            );
+
+
+        document.getElementById(
+            "adminStudentCommission"
+        ).textContent =
+            formatAdminCommissionMoney(
+                commission.studentCommission
+            );
+
+
+        document.getElementById(
+            "adminBusinessCommission"
+        ).textContent =
+            formatAdminCommissionMoney(
+                commission.businessCommission
+            );
+
+
+        document.getElementById(
+            "adminCommissionSales"
+        ).textContent =
+            Number(
+                commission.totalCommissionSales || 0
+            );
+
+
+        document.getElementById(
+            "adminCommissionTotalSales"
+        ).textContent =
+            formatAdminCommissionMoney(
+                commission.totalSales
+            );
+
+
+        /*
+         * Commission history
+         */
+
+        const historyContainer =
+            document.getElementById(
+                "adminCommissionHistory"
+            );
+
+
+        if (!history.length) {
+
+            historyContainer.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="text-center text-muted py-4"
+                    >
+
+                        No commission records found.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        } else {
+
+            historyContainer.innerHTML =
+                history.map(
+                    item => {
+
+                        const orderId =
+                            item.orderId ??
+                            item.order_id ??
+                            "-";
+
+
+                        const sellerName =
+                            item.sellerName ??
+                            item.seller_name ??
+                            "Unknown Seller";
+
+
+                        const sellerEmail =
+                            item.sellerEmail ??
+                            item.seller_email ??
+                            "";
+
+
+                        const sellerRole =
+                            item.sellerRole ??
+                            item.seller_role ??
+                            "";
+
+
+                        const saleAmount =
+                            item.saleAmount ??
+                            item.sale_amount ??
+                            (
+                                Number(
+                                    item.price || 0
+                                ) *
+                                Number(
+                                    item.quantity || 1
+                                )
+                            );
+
+
+                        const commissionRate =
+                            item.commissionRate ??
+                            item.commission_rate ??
+                            0;
+
+
+                        const commissionAmount =
+                            item.commissionAmount ??
+                            item.commission_amount ??
+                            0;
+
+
+                        const createdAt =
+                            item.createdAt ??
+                            item.created_at ??
+                            null;
+
+
+                        let sellerType =
+                            "Seller";
+
+
+                        if (
+                            sellerRole ===
+                            "student_seller"
+                        ) {
+
+                            sellerType =
+                                "Student Seller";
+
+                        } else if (
+                            sellerRole ===
+                            "business_seller"
+                        ) {
+
+                            sellerType =
+                                "Business Seller";
+
+                        }
+
+
+                        let dateText =
+                            "-";
+
+
+                        if (createdAt) {
+
+                            const date =
+                                new Date(
+                                    createdAt
+                                );
+
+
+                            if (
+                                !Number.isNaN(
+                                    date.getTime()
+                                )
+                            ) {
+
+                                dateText =
+                                    date.toLocaleDateString(
+                                        "en-IN"
+                                    );
+
+                            }
+
+                        }
+
+
+                        return `
+
+                            <tr>
+
+                                <td>
+
+                                    <strong>
+                                        #${escapeHtml(
+                                            String(orderId)
+                                        )}
+                                    </strong>
+
+                                </td>
+
+
+                                <td>
+
+                                    <div class="fw-semibold">
+
+                                        ${escapeHtml(
+                                            String(
+                                                sellerName
+                                            )
+                                        )}
+
+                                    </div>
+
+                                    ${
+                                        sellerEmail
+                                            ? `
+                                                <small class="text-muted">
+                                                    ${escapeHtml(
+                                                        String(
+                                                            sellerEmail
+                                                        )
+                                                    )}
+                                                </small>
+                                            `
+                                            : ""
+                                    }
+
+                                </td>
+
+
+                                <td>
+
+                                    ${
+                                        sellerRole ===
+                                        "student_seller"
+
+                                            ? `
+                                                <span class="badge bg-primary">
+                                                    Student Seller
+                                                </span>
+                                            `
+
+                                            : sellerRole ===
+                                              "business_seller"
+
+                                                ? `
+                                                    <span class="badge bg-dark">
+                                                        Business Seller
+                                                    </span>
+                                                `
+
+                                                : `
+                                                    <span class="badge bg-secondary">
+                                                        ${escapeHtml(
+                                                            sellerType
+                                                        )}
+                                                    </span>
+                                                `
+                                    }
+
+                                </td>
+
+
+                                <td>
+
+                                    ${formatAdminCommissionMoney(
+                                        saleAmount
+                                    )}
+
+                                </td>
+
+
+                                <td>
+
+                                    ${Number(
+                                        commissionRate
+                                    ).toFixed(2)}%
+
+                                </td>
+
+
+                                <td>
+
+                                    <strong>
+
+                                        ${formatAdminCommissionMoney(
+                                            commissionAmount
+                                        )}
+
+                                    </strong>
+
+                                </td>
+
+
+                                <td>
+
+                                    ${escapeHtml(
+                                        dateText
+                                    )}
+
+                                </td>
+
+                            </tr>
+
+                        `;
+
+                    }
+                ).join("");
+
+        }
+
+
+        /*
+         * Show commission content after successful loading.
+         */
+
+        document.getElementById(
+            "adminCommissionLoading"
+        ).classList.add(
+            "d-none"
+        );
+
+
+        document.getElementById(
+            "adminCommissionContent"
+        ).classList.remove(
+            "d-none"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Admin commission error:",
+            error
+        );
+
+
+        const loading =
+            document.getElementById(
+                "adminCommissionLoading"
+            );
+
+
+        const errorContainer =
+            document.getElementById(
+                "adminCommissionError"
+            );
+
+
+        if (loading) {
+
+            loading.classList.add(
+                "d-none"
+            );
+
+        }
+
+
+        if (errorContainer) {
+
+            errorContainer.textContent =
+                error.message ||
+                "Unable to load commission data.";
+
+            errorContainer.classList.remove(
+                "d-none"
+            );
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   PENDING SELLERS
+   ============================================================ */
 
 async function loadPendingSellers() {
 
@@ -4092,16 +4924,23 @@ async function loadPendingSellers() {
                 "/admin/sellers/pending"
             );
 
+
         const sellers =
-            data.sellers || data || [];
+            data.sellers ||
+            data ||
+            [];
 
 
         if (!sellers.length) {
 
             container.innerHTML = `
-                <div class="alert alert-success">
-                    No pending seller verifications.
+
+                <div class="alert alert-light border">
+
+                    No pending sellers.
+
                 </div>
+
             `;
 
             return;
@@ -4109,76 +4948,119 @@ async function loadPendingSellers() {
 
 
         container.innerHTML =
-            sellers.map(seller => `
+            sellers.map(
+                seller => `
 
-                <div class="border rounded p-3 mb-3">
+                    <div class="card mb-3">
 
-                    <div class="row align-items-center">
+                        <div class="card-body">
 
-                        <div class="col-md-8">
+                            <div class="row align-items-center">
 
-                            <h5>
-                                ${escapeHtml(
-                                    seller.display_name ||
-                                    seller.name
-                                )}
-                            </h5>
+                                <div class="col-md-8">
 
-                            <p class="mb-1">
-                                ${escapeHtml(
-                                    seller.email ||
-                                    ""
-                                )}
-                            </p>
+                                    <h6 class="fw-bold mb-1">
 
-                            <p class="mb-0 text-muted">
-                                Seller Type:
-                                ${escapeHtml(
-                                    seller.seller_type ||
-                                    "student"
-                                )}
-                            </p>
+                                        ${escapeHtml(
+                                            seller.name ||
+                                            seller.display_name ||
+                                            "Seller"
+                                        )}
 
-                        </div>
+                                    </h6>
 
 
-                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                    <p class="mb-1">
 
-                            <button
-                                class="btn btn-success me-2"
-                                onclick="approveSeller(${seller.id})"
-                            >
-                                Approve
-                            </button>
+                                        ${escapeHtml(
+                                            seller.email ||
+                                            ""
+                                        )}
 
-                            <button
-                                class="btn btn-danger"
-                                onclick="rejectSeller(${seller.id})"
-                            >
-                                Reject
-                            </button>
+                                    </p>
+
+
+                                    <p class="mb-0 text-muted">
+
+                                        Seller Type:
+
+                                        ${escapeHtml(
+                                            seller.seller_type ||
+                                            seller.role ||
+                                            "student_seller"
+                                        )}
+
+                                    </p>
+
+                                </div>
+
+
+                                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                                    <button
+                                        class="btn btn-success me-2"
+                                        onclick="approveSeller('${escapeHtml(
+                                            String(
+                                                seller.id
+                                            )
+                                        )}')"
+                                    >
+
+                                        Approve
+
+                                    </button>
+
+
+                                    <button
+                                        class="btn btn-danger"
+                                        onclick="rejectSeller('${escapeHtml(
+                                            String(
+                                                seller.id
+                                            )
+                                        )}')"
+                                    >
+
+                                        Reject
+
+                                    </button>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
                     </div>
 
-                </div>
-
-            `).join("");
+                `
+            ).join("");
 
 
     } catch (error) {
 
         container.innerHTML = `
+
             <div class="alert alert-danger">
-                ${escapeHtml(error.message)}
+
+                ${escapeHtml(
+                    error.message ||
+                    "Unable to load pending sellers."
+                )}
+
             </div>
+
         `;
     }
 }
 
 
-async function approveSeller(sellerId) {
+/* ============================================================
+   APPROVE SELLER
+   ============================================================ */
+
+async function approveSeller(
+    sellerId
+) {
 
     try {
 
@@ -4199,6 +5081,7 @@ async function approveSeller(sellerId) {
 
 
         loadPendingSellers();
+
         loadAdminStats();
 
 
@@ -4208,11 +5091,19 @@ async function approveSeller(sellerId) {
             error.message,
             "danger"
         );
+
     }
+
 }
 
 
-async function rejectSeller(sellerId) {
+/* ============================================================
+   REJECT SELLER
+   ============================================================ */
+
+async function rejectSeller(
+    sellerId
+) {
 
     const reason =
         prompt(
@@ -4221,7 +5112,9 @@ async function rejectSeller(sellerId) {
 
 
     if (reason === null) {
+
         return;
+
     }
 
 
@@ -4248,6 +5141,7 @@ async function rejectSeller(sellerId) {
 
 
         loadPendingSellers();
+
         loadAdminStats();
 
 
@@ -4257,9 +5151,10 @@ async function rejectSeller(sellerId) {
             error.message,
             "danger"
         );
-    }
-}
 
+    }
+
+}
 
 // ============================================================
 // INITIALIZATION

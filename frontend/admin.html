@@ -301,6 +301,148 @@
 
             </div>
 
+
+            <!-- COMMISSION -->
+            <div class="col-12">
+                <div class="card shadow-sm mt-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="mb-1">
+                                    <i class="bi bi-cash-stack"></i>
+                                    Seller Commission
+                                </h4>
+                                <p class="text-muted mb-0">
+                                    Commission generated from successful paid sales.
+                                </p>
+                            </div>
+
+                            <button
+                                class="btn btn-outline-primary btn-sm"
+                                onclick="loadCommission()"
+                            >
+                                <i class="bi bi-arrow-clockwise"></i>
+                                Refresh
+                            </button>
+                        </div>
+
+                        <div id="commissionError" class="alert alert-danger d-none"></div>
+
+                        <div id="commissionLoading" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="text-muted mt-2 mb-0">
+                                Loading commission data...
+                            </p>
+                        </div>
+
+                        <div id="commissionContent" class="d-none">
+                            <div class="row g-3 mb-4">
+
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body">
+                                            <div class="text-muted small">
+                                                Total Commission
+                                            </div>
+                                            <h3
+                                                class="fw-bold mt-2 mb-0"
+                                                id="totalCommission"
+                                            >
+                                                ₹0.00
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body">
+                                            <div class="text-muted small">
+                                                Student Seller — 5%
+                                            </div>
+                                            <h3
+                                                class="fw-bold mt-2 mb-0"
+                                                id="studentCommission"
+                                            >
+                                                ₹0.00
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body">
+                                            <div class="text-muted small">
+                                                Business Seller — 10%
+                                            </div>
+                                            <h3
+                                                class="fw-bold mt-2 mb-0"
+                                                id="businessCommission"
+                                            >
+                                                ₹0.00
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body">
+                                            <div class="text-muted small">
+                                                Commission Sales
+                                            </div>
+                                            <h3
+                                                class="fw-bold mt-2 mb-0"
+                                                id="totalCommissionSales"
+                                            >
+                                                0
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="text-muted small">
+                                    Sales on which commission was generated
+                                </div>
+                                <h5
+                                    class="fw-bold mt-1"
+                                    id="commissionSalesAmount"
+                                >
+                                    ₹0.00
+                                </h5>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Order</th>
+                                            <th>Seller</th>
+                                            <th>Seller Type</th>
+                                            <th>Sale Amount</th>
+                                            <th>Rate</th>
+                                            <th>Commission</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="commissionHistoryBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted">
+                                                No commission history found.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- SELLER VERIFICATION -->
 
             <div class="col-12">
@@ -525,6 +667,255 @@ async function loadStats() {
     }
 
 }
+
+
+async function loadCommission() {
+
+    const loading =
+        document.getElementById("commissionLoading");
+
+    const content =
+        document.getElementById("commissionContent");
+
+    const errorMessage =
+        document.getElementById("commissionError");
+
+    const historyBody =
+        document.getElementById("commissionHistoryBody");
+
+    if (!loading || !content || !errorMessage || !historyBody) {
+        return;
+    }
+
+    loading.classList.remove("d-none");
+    content.classList.add("d-none");
+    errorMessage.classList.add("d-none");
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/admin/commission`,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${getToken()}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message ||
+                "Failed to load commission data"
+            );
+        }
+
+        const commission =
+            data.commission || {};
+
+        document.getElementById(
+            "totalCommission"
+        ).textContent =
+            formatAdminMoney(
+                commission.totalCommission
+            );
+
+        document.getElementById(
+            "studentCommission"
+        ).textContent =
+            formatAdminMoney(
+                commission.studentCommission
+            );
+
+        document.getElementById(
+            "businessCommission"
+        ).textContent =
+            formatAdminMoney(
+                commission.businessCommission
+            );
+
+        document.getElementById(
+            "totalCommissionSales"
+        ).textContent =
+            Number(
+                commission.totalCommissionSales || 0
+            ).toLocaleString("en-IN");
+
+        document.getElementById(
+            "commissionSalesAmount"
+        ).textContent =
+            formatAdminMoney(
+                commission.totalSales
+            );
+
+        const history =
+            Array.isArray(data.history)
+                ? data.history
+                : [];
+
+        if (!history.length) {
+
+            historyBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        No commission history found.
+                    </td>
+                </tr>
+            `;
+
+        } else {
+
+            historyBody.innerHTML =
+                history.map(item => {
+
+                    const sellerRole =
+                        item.sellerRole ||
+                        item.seller_role ||
+                        "";
+
+                    const sellerType =
+                        sellerRole === "student_seller"
+                            ? "Student Seller"
+                            : sellerRole === "business_seller"
+                                ? "Business Seller"
+                                : "Seller";
+
+                    const sellerName =
+                        item.sellerName ||
+                        item.seller_name ||
+                        "Unknown Seller";
+
+                    const sellerEmail =
+                        item.sellerEmail ||
+                        item.seller_email ||
+                        "";
+
+                    const orderId =
+                        item.orderId ??
+                        item.order_id ??
+                        "-";
+
+                    const saleAmount =
+                        item.saleAmount ??
+                        item.sale_amount ??
+                        (
+                            Number(item.price || 0) *
+                            Number(item.quantity || 0)
+                        );
+
+                    const rate =
+                        item.commissionRate ??
+                        item.commission_rate ??
+                        0;
+
+                    const commissionAmount =
+                        item.commissionAmount ??
+                        item.commission_amount ??
+                        0;
+
+                    const createdAt =
+                        item.createdAt ||
+                        item.created_at;
+
+                    return `
+                        <tr>
+                            <td>
+                                <strong>#${escapeHTML(orderId)}</strong>
+                            </td>
+
+                            <td>
+                                <div>
+                                    ${escapeHTML(sellerName)}
+                                </div>
+                                ${
+                                    sellerEmail
+                                        ? `
+                                            <small class="text-muted">
+                                                ${escapeHTML(sellerEmail)}
+                                            </small>
+                                        `
+                                        : ""
+                                }
+                            </td>
+
+                            <td>
+                                <span class="badge ${
+                                    sellerRole === "student_seller"
+                                        ? "bg-primary"
+                                        : sellerRole === "business_seller"
+                                            ? "bg-dark"
+                                            : "bg-secondary"
+                                }">
+                                    ${sellerType}
+                                </span>
+                            </td>
+
+                            <td>
+                                ${formatAdminMoney(saleAmount)}
+                            </td>
+
+                            <td>
+                                ${Number(rate).toFixed(2)}%
+                            </td>
+
+                            <td class="fw-semibold">
+                                ${formatAdminMoney(commissionAmount)}
+                            </td>
+
+                            <td>
+                                ${
+                                    createdAt
+                                        ? new Date(
+                                            createdAt
+                                        ).toLocaleString("en-IN")
+                                        : "-"
+                                }
+                            </td>
+                        </tr>
+                    `;
+
+                }).join("");
+        }
+
+        content.classList.remove("d-none");
+
+    } catch (error) {
+
+        console.error(
+            "Commission dashboard error:",
+            error
+        );
+
+        errorMessage.textContent =
+            error.message ||
+            "Failed to load commission data";
+
+        errorMessage.classList.remove("d-none");
+
+    } finally {
+
+        loading.classList.add("d-none");
+
+    }
+}
+
+
+function formatAdminMoney(value) {
+
+    return `₹${Number(
+        value || 0
+    ).toLocaleString(
+        "en-IN",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    )}`;
+
+}
+
 
 async function loadSupportRequests() {
 
@@ -1329,6 +1720,7 @@ async function rejectSeller(sellerId) {
 
 
 loadStats();
+loadCommission();
 loadSupportRequests();
 loadPendingSellers();
 

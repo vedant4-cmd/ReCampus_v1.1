@@ -1,7 +1,8 @@
 const express = require("express");
 
 const {
-    getDashboardStats
+    getDashboardStats,
+    getCommissionData
 } = require("../controllers/adminController");
 
 const authMiddleware =
@@ -12,11 +13,29 @@ const adminMiddleware =
 
 const router = express.Router();
 
+
+// =====================================================
+// ADMIN DASHBOARD STATISTICS
+// =====================================================
+
 router.get(
     "/stats",
     authMiddleware,
     adminMiddleware,
     getDashboardStats
 );
+
+
+// =====================================================
+// ADMIN COMMISSION DATA
+// =====================================================
+
+router.get(
+    "/commission",
+    authMiddleware,
+    adminMiddleware,
+    getCommissionData
+);
+
 
 module.exports = router;
